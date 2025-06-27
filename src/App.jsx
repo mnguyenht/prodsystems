@@ -28,52 +28,76 @@ import {
 import { Plus, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
-function Task({ tasks, setTasks, name, setName, description, setDescription }) {
+function Task({ tasks, setTasks }) {
   const removeTask = (id) => {
     setTasks((prev) => prev.filter((task) => task.id !== id));
-    console.log("task removed");
   };
 
   return tasks.map((task) => (
-    <TableRow key={task.id}>
-      <TableCell>
-        <Checkbox
-          className="size-6"
-          checked={task.completed}
-          onCheckedChange={(checked) => {
-            setTasks((changeTaskorNot) =>
-              changeTaskorNot.map((t) =>
-                t.id === task.id ? { ...t, completed: checked } : t
-              )
-            );
-            console.log("Changed to:", checked);
-          }}
-        />
-      </TableCell>
-      <TableCell
-        className={`font-medium ${
-          task.completed ? "line-through text-gray-400" : ""
-        }`}
-      >
-        {task.name}
-      </TableCell>
-      <TableCell
-        className={`whitespace-normal break-words ${
-          task.completed ? "line-through text-gray-400" : ""
-        }`}
-      >
-        {task.description}
-      </TableCell>
-      <TableCell className="text-right">
-        <Button variant="outline" onClick={() => removeTask(task.id)}>
-          <X />
-        </Button>
-      </TableCell>
-    </TableRow>
+    <Dialog key={task.id}>
+      <TableRow>
+        <TableCell>
+          <Checkbox
+            className="size-6"
+            checked={task.completed}
+            onCheckedChange={(checked) => {
+              setTasks((prev) =>
+                prev.map((t) =>
+                  t.id === task.id ? { ...t, completed: checked } : t
+                )
+              );
+            }}
+          />
+        </TableCell>
+
+        <DialogTrigger asChild>
+          <TableCell
+            className={`cursor-pointer font-medium ${
+              task.completed ? "line-through text-gray-400" : ""
+            }`}
+            colSpan={2} // span across name + description
+          >
+            <div>
+              <div>{task.name}</div>
+              <div className="text-sm text-muted-foreground break-words">
+                {task.description}
+              </div>
+            </div>
+          </TableCell>
+        </DialogTrigger>
+
+        <TableCell className="text-right">
+          <Button
+            className="cursor-pointer"
+            variant="outline"
+            onClick={() => removeTask(task.id)}
+          >
+            <X />
+          </Button>
+        </TableCell>
+      </TableRow>
+
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{task.name}</DialogTitle>
+          <DialogDescription>
+            <ul className="my-4 ml-6 list-disc [&>li]:mt-2">
+              <li>{task.description}</li>
+            </ul>
+          </DialogDescription>
+          <p className="text-muted-foreground mt-4">
+            <code className="bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+              Completion status = {task.completed.toString()}
+            </code>
+          </p>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
   ));
 }
 
-//TODO:
+
+
 
 function AddTask({
   tasks,
@@ -201,15 +225,19 @@ export default function App() {
         "add tailwind stroke and gray out to a task when toggling said task",
       completed: false,
     },
+    {
+      id: 4,
+      name: "Click to see more",
+      description:
+        "When a task's body is clicked, reveals '''more''' about the task",
+      completed: false,
+    },
   ]);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [length, setLength] = useState(3);
-
   return (
     <>
-
       <Home tasks={tasks} setTasks={setTasks} />
       <div className="fixed bottom-6 right-6 z-50">
         <AddTask
