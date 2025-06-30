@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 
 function Task({ tasks, setTasks }) {
   const removeTask = (id) => {
@@ -65,10 +66,7 @@ function Task({ tasks, setTasks }) {
               task.completed ? "line-through text-gray-400" : ""
             }`}
           >
-            <p className="">
-              {" "}
-              {task.description}
-            </p>
+            <p className=""> {task.description}</p>
           </TableCell>
 
           <TableCell className="text-right">
@@ -104,14 +102,10 @@ function Task({ tasks, setTasks }) {
   ));
 }
 
-function AddTask({
-  tasks,
-  setTasks,
-  name,
-  setName,
-  description,
-  setDescription,
-}) {
+function AddTask({ tasks, setTasks }) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+
   const addTask = () => {
     let maxId = tasks.length + 1;
     console.log(maxId);
@@ -166,12 +160,26 @@ function AddTask({
         <DialogFooter className="p-0">
           <div className="flex w-full justify-between items-center">
             <DialogClose asChild>
-              <Button type="button" variant="secondary">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setName("");
+                  setDescription("");
+                }}
+              >
                 Cancel
               </Button>
             </DialogClose>
             <DialogClose asChild>
-              <Button type="button" onClick={() => addTask()}>
+              <Button
+                type="button"
+                onClick={() => {
+                  addTask();
+                  setName("");
+                  setDescription("");
+                }}
+              >
                 Save
               </Button>
             </DialogClose>
@@ -208,7 +216,22 @@ function Home({ tasks, setTasks }) {
   );
 }
 
-export default function App() {
+function TodoList({ tasks, setTasks }) {
+  return (
+    <>
+      <Home tasks={tasks} setTasks={setTasks} />
+      <div className="fixed bottom-6 right-6 z-50">
+        <AddTask tasks={tasks} setTasks={setTasks} />
+      </div>
+    </>
+  );
+}
+
+function Pomodoro() {
+  return <h2>Landing Page</h2>;
+}
+
+function App() {
   const [tasks, setTasks] = useState([
     {
       id: 1,
@@ -238,22 +261,21 @@ export default function App() {
       completed: false,
     },
   ]);
-
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   return (
-    <>
-      <Home tasks={tasks} setTasks={setTasks} />
-      <div className="fixed bottom-6 right-6 z-50">
-        <AddTask
-          tasks={tasks}
-          setTasks={setTasks}
-          name={name}
-          setName={setName}
-          description={description}
-          setDescription={setDescription}
+    <BrowserRouter>
+      <nav>
+        <Link to="/">Todolist</Link> | <Link to="/Pomodoro">Pomodoro</Link>
+      </nav>
+      <Routes>
+        <Route
+          path="/"
+          element={<TodoList tasks={tasks} setTasks={setTasks} />}
         />
-      </div>
-    </>
+        <Route path="/Pomodoro" element={<Pomodoro />} />
+        <Route path="*" element={<h2>404 Page Not Found</h2>} />
+      </Routes>
+    </BrowserRouter>
   );
 }
+
+export default App;
