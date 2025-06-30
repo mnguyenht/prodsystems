@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
@@ -25,7 +25,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, X, Settings } from "lucide-react";
+import { Toaster, toast } from "sonner";
+
+import { Plus, X, Settings, ChevronLast, ChevronLeft } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -303,26 +305,100 @@ function ChangeSettings() {
   );
 }
 
-function Pomodoro() {
+function Timer({
+  seconds,
+  setSeconds,
+  minutes,
+  setMinutes,
+  ticking,
+  setTicking,
+}) {
+  useEffect(() => {
+    if (!ticking) return;
+
+    const interval = setInterval(() => {
+      //Tick down seconds
+      setSeconds((prevSeconds) => {
+        if (prevSeconds === 0) {
+          return 59;
+        } else {
+          return prevSeconds - 1;
+        }
+      });
+      //Timer finished congats amazing also seconds == 1 because lifecycle reasons
+      setMinutes((prevMinutes) => {
+        if (prevMinutes === 0 && seconds === 1) {
+          setTicking(false);
+          return 0;
+        }
+
+        return seconds === 0 ? prevMinutes - 1 : prevMinutes;
+      });
+    }, 50);
+    //Making it fast for prod
+
+    return () => clearInterval(interval);
+  }, [ticking, seconds]);
+
+  return (
+    <>
+      {minutes - 10 < 0 ? "0" + minutes : minutes}:
+      {seconds - 10 < 0 ? "0" + seconds : seconds}
+    </>
+  );
+}
+
+function Pomodoro({
+  status,
+  setStatus,
+  seconds,
+  setSeconds,
+  minutes,
+  setMinutes,
+  ticking,
+  setTicking,
+}) {
   return (
     <>
       <ChangeSettings />
-
-      <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-x-hidden bg-white">
+      <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-x-hidden bg-white ">
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
           The Pomodoro Timer
         </h2>
 
-        <div className="flex flex-col items-center overflow-x-hidden bg-accent p-10 gap-10 font-manrope">
+        <div className="flex flex-col items-center overflow-x-hidden bg-accent p-10 gap-10 font-manrope rounded-md">
           <h1 className="scroll-m-20 text-center text-8xl font-manrope tracking-tight text-balance">
-            00:00:00
+            <Timer
+              seconds={seconds}
+              setSeconds={setSeconds}
+              minutes={minutes}
+              setMinutes={setMinutes}
+              ticking={ticking}
+              setTicking={setTicking}
+            />
           </h1>
-          <div className="flex flex-col items-center overflow-x-hidden bg-accent gap-3 font-manrope">
-            <p className="font-manrope text-lg">Current Status: Short Break</p>
+          <div className="flex flex-col items-center overflow-x-hidden bg-accent gap-4 font-manrope">
+            <p className="font-manrope text-lg">
+              Current Status: {status[0].toString()}
+            </p>
 
-            <Button className="scroll-m-20 text-center w-40 h-15 text-xl tracking-tight text-balance">
-              START
-            </Button>
+            <div className="flex flex-row gap-6 items-center justify-center">
+              <ChevronLast className="size-10 scale-x-[-1] cursor-pointer" />
+              <Button
+                className="scroll-m-20 text-center w-40 h-15 text-xl tracking-tight text-balance cursor-pointer"
+                onClick={() => {
+                  if (minutes === 0 && seconds === 0) {
+                    toast.error("bro");
+
+                    return 0;
+                  }
+                  setTicking((prev) => !prev);
+                }}
+              >
+                {ticking ? "STOP" : "START"}
+              </Button>
+              <ChevronLast className="size-10 cursor-pointer" />
+            </div>
           </div>
         </div>
       </div>
@@ -331,58 +407,81 @@ function Pomodoro() {
 }
 
 function App() {
+  const [minutes, setMinutes] = useState(1);
+  const [ticking, setTicking] = useState(false);
+  const [status, setStatus] = useState(["Pomodoro", "Long Break", "Short"]);
+  const [seconds, setSeconds] = useState(0);
+
   const [tasks, setTasks] = useState([
     {
       id: 1,
-      name: "Make add button fields work",
+      name: "Add dynamicness to tabs and also cursor pointer highlight",
       description:
-        "After inputting fields in add task button, make it add a task with those fields as information",
+        "",
       completed: false,
     },
     {
       id: 2,
-      name: "Make delete button work",
-      description: "self explanatory",
+      name: "Make current status a dropdown menu",
+      description: "turn status[0].toString() into a dropdown menu",
       completed: false,
     },
     {
       id: 3,
-      name: "Add stroke outline for when toggling",
+      name: "Switching status after finishing one",
       description:
-        "add tailwind stroke and gray out to a task when toggling said task",
+        "self explanatory",
       completed: false,
     },
     {
       id: 4,
-      name: "Click to see more",
+      name: "Arrow functionality",
       description:
-        "When a task's body is clicked, reveals '''more''' about the task",
+        "switch only from pomo and short break",
       completed: false,
     },
   ]);
+
   return (
-    <BrowserRouter>
-      <div className="fixed top-4 left-4 z-50">
-        <Tabs defaultValue="account" className="w-[400px]">
-          <TabsList>
-            <Link to="/">
-              <TabsTrigger value="account"> Todolist</TabsTrigger>
-            </Link>
-            <Link to="/Pomodoro">
-              <TabsTrigger value="password">Pomodoro</TabsTrigger>
-            </Link>
-          </TabsList>
-        </Tabs>
-      </div>
-      <Routes>
-        <Route
-          path="/"
-          element={<TodoList tasks={tasks} setTasks={setTasks} />}
-        />
-        <Route path="/Pomodoro" element={<Pomodoro />} />
-        <Route path="*" element={<h2>404 Page Not Found</h2>} />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <Toaster position="bottom-center" />;
+      <BrowserRouter>
+        <div className="fixed top-4 left-4 z-50">
+          <Tabs defaultValue="account" className="w-[400px]">
+            <TabsList>
+              <Link to="/">
+                <TabsTrigger value="account"> Todolist</TabsTrigger>
+              </Link>
+              <Link to="/Pomodoro">
+                <TabsTrigger value="password">Pomodoro</TabsTrigger>
+              </Link>
+            </TabsList>
+          </Tabs>
+        </div>
+        <Routes>
+          <Route
+            path="/"
+            element={<TodoList tasks={tasks} setTasks={setTasks} />}
+          />
+          <Route
+            path="/Pomodoro"
+            element={
+              <Pomodoro
+                status={status}
+                setStatus={setStatus}
+                seconds={seconds}
+                setSeconds={setSeconds}
+                minutes={minutes}
+                setMinutes={setMinutes}
+                ticking={ticking}
+                setTicking={setTicking}
+              />
+            }
+          />
+          <Route path="*" element={<h2>404 Page Not Found</h2>} />
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 
