@@ -25,9 +25,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Settings } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import "@fontsource/manrope";
+import "@fontsource/manrope/400.css";
+import "@fontsource/manrope/600.css";
+import "@fontsource/manrope/700.css";
 
 function Task({ tasks, setTasks }) {
   const removeTask = (id) => {
@@ -37,10 +42,10 @@ function Task({ tasks, setTasks }) {
   return tasks.map((task) => (
     <Dialog key={task.id}>
       <DialogTrigger asChild>
-        <TableRow className="cursor-pointer">
+        <TableRow>
           <TableCell>
             <Checkbox
-              className="size-6"
+              className="size-6 cursor-pointer"
               checked={task.completed}
               onCheckedChange={(checked) => {
                 setTasks((prev) =>
@@ -72,12 +77,12 @@ function Task({ tasks, setTasks }) {
           <TableCell className="text-right">
             <Button
               variant="outline"
-              onClick={(e) => {
-                e.stopPropagation(); // prevent dialog from opening
+              onClick={() => {
                 removeTask(task.id);
               }}
+              className="cursor-pointer"
             >
-              <X />
+              <X className="cursor-pointer" />
             </Button>
           </TableCell>
         </TableRow>
@@ -124,10 +129,15 @@ function AddTask({ tasks, setTasks }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="size-12">
+        <Button
+          variant="outline"
+          size="icon"
+          className="size-12 cursor-pointer"
+        >
           <Plus className="size-6" />
         </Button>
       </DialogTrigger>
+
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Task</DialogTitle>
@@ -135,6 +145,7 @@ function AddTask({ tasks, setTasks }) {
             What do you wish to accomplish today?
           </DialogDescription>
         </DialogHeader>
+
         <div className="flex items-center gap-2">
           <div className="grid flex-1 gap-2">
             <Input
@@ -157,6 +168,7 @@ function AddTask({ tasks, setTasks }) {
             />
           </div>
         </div>
+
         <DialogFooter className="p-0">
           <div className="flex w-full justify-between items-center">
             <DialogClose asChild>
@@ -167,10 +179,12 @@ function AddTask({ tasks, setTasks }) {
                   setName("");
                   setDescription("");
                 }}
+                className="cursor-pointer"
               >
                 Cancel
               </Button>
             </DialogClose>
+
             <DialogClose asChild>
               <Button
                 type="button"
@@ -179,6 +193,7 @@ function AddTask({ tasks, setTasks }) {
                   setName("");
                   setDescription("");
                 }}
+                className="cursor-pointer"
               >
                 Save
               </Button>
@@ -220,15 +235,99 @@ function TodoList({ tasks, setTasks }) {
   return (
     <>
       <Home tasks={tasks} setTasks={setTasks} />
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-4 right-4 z-50">
         <AddTask tasks={tasks} setTasks={setTasks} />
       </div>
     </>
   );
 }
 
+// -Pomodoro + setting doi thoi gian trong localstorage
+// -Router tu trong todoilist
+function ChangeSettings() {
+  return (
+    <>
+      <Dialog>
+        <DialogTrigger asChild>
+          <div className="fixed bottom-4 right-4 z-50 cursor-pointer">
+            {" "}
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-12 cursor-pointer"
+            >
+              <Settings className="size-6" />
+            </Button>
+          </div>
+        </DialogTrigger>
+
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Task</DialogTitle>
+            <DialogDescription>
+              What do you wish to accomplish today?
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="p-0">
+            <div className="flex w-full justify-between items-center">
+              <DialogClose asChild>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    console.log("pressed this one");
+                  }}
+                  className="cursor-pointer"
+                >
+                  Cancel
+                </Button>
+              </DialogClose>
+
+              <DialogClose asChild>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    console.log("pressed this one");
+                  }}
+                  className="cursor-pointer"
+                >
+                  Save
+                </Button>
+              </DialogClose>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 function Pomodoro() {
-  return <h2>Landing Page</h2>;
+  return (
+    <>
+      <ChangeSettings />
+
+      <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-x-hidden bg-white">
+        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+          The Pomodoro Timer
+        </h2>
+
+        <div className="flex flex-col items-center overflow-x-hidden bg-accent p-10 gap-10 font-manrope">
+          <h1 className="scroll-m-20 text-center text-8xl font-manrope tracking-tight text-balance">
+            00:00:00
+          </h1>
+          <div className="flex flex-col items-center overflow-x-hidden bg-accent gap-3 font-manrope">
+            <p className="font-manrope text-lg">Current Status: Short Break</p>
+
+            <Button className="scroll-m-20 text-center w-40 h-15 text-xl tracking-tight text-balance">
+              START
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
 
 function App() {
@@ -263,9 +362,18 @@ function App() {
   ]);
   return (
     <BrowserRouter>
-      <nav>
-        <Link to="/">Todolist</Link> | <Link to="/Pomodoro">Pomodoro</Link>
-      </nav>
+      <div className="fixed top-4 left-4 z-50">
+        <Tabs defaultValue="account" className="w-[400px]">
+          <TabsList>
+            <Link to="/">
+              <TabsTrigger value="account"> Todolist</TabsTrigger>
+            </Link>
+            <Link to="/Pomodoro">
+              <TabsTrigger value="password">Pomodoro</TabsTrigger>
+            </Link>
+          </TabsList>
+        </Tabs>
+      </div>
       <Routes>
         <Route
           path="/"
