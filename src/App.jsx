@@ -35,47 +35,55 @@ function Task({ tasks, setTasks }) {
 
   return tasks.map((task) => (
     <Dialog key={task.id}>
-      <TableRow>
-        <TableCell>
-          <Checkbox
-            className="size-6"
-            checked={task.completed}
-            onCheckedChange={(checked) => {
-              setTasks((prev) =>
-                prev.map((t) =>
-                  t.id === task.id ? { ...t, completed: checked } : t
-                )
-              );
-            }}
-          />
-        </TableCell>
+      <DialogTrigger asChild>
+        <TableRow className="cursor-pointer">
+          <TableCell>
+            <Checkbox
+              className="size-6"
+              checked={task.completed}
+              onCheckedChange={(checked) => {
+                setTasks((prev) =>
+                  prev.map((t) =>
+                    t.id === task.id ? { ...t, completed: checked } : t
+                  )
+                );
+              }}
+              onClick={(e) => e.stopPropagation()} // prevent dialog from opening on checkbox click
+            />
+          </TableCell>
 
-        <DialogTrigger asChild>
           <TableCell
-            className={`cursor-pointer font-medium ${
+            className={`font-medium ${
               task.completed ? "line-through text-gray-400" : ""
             }`}
-            colSpan={2} // span across name + description
           >
-            <div>
-              <div>{task.name}</div>
-              <div className="text-sm text-muted-foreground break-words">
-                {task.description}
-              </div>
-            </div>
+            {task.name}
           </TableCell>
-        </DialogTrigger>
 
-        <TableCell className="text-right">
-          <Button
-            className="cursor-pointer"
-            variant="outline"
-            onClick={() => removeTask(task.id)}
+          <TableCell
+            className={`whitespace-normal break-words ${
+              task.completed ? "line-through text-gray-400" : ""
+            }`}
           >
-            <X />
-          </Button>
-        </TableCell>
-      </TableRow>
+            <p className="">
+              {" "}
+              {task.description}
+            </p>
+          </TableCell>
+
+          <TableCell className="text-right">
+            <Button
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation(); // prevent dialog from opening
+                removeTask(task.id);
+              }}
+            >
+              <X />
+            </Button>
+          </TableCell>
+        </TableRow>
+      </DialogTrigger>
 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -95,9 +103,6 @@ function Task({ tasks, setTasks }) {
     </Dialog>
   ));
 }
-
-
-
 
 function AddTask({
   tasks,
