@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
@@ -26,7 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Toaster, toast } from "sonner";
-
 import {
   Plus,
   X,
@@ -36,21 +35,18 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useLocation,
+} from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import "@fontsource/manrope";
 import "@fontsource/manrope/400.css";
 import "@fontsource/manrope/600.css";
 import "@fontsource/manrope/700.css";
-import { useLocation } from "react-router-dom";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   closestCorners,
   DndContext,
@@ -58,20 +54,23 @@ import {
   TouchSensor,
   useSensors,
   useSensor,
+  DragOverlay,
 } from "@dnd-kit/core";
-
-import { arrayMove, useSortable } from "@dnd-kit/sortable";
-import { SortableContext } from "@dnd-kit/sortable";
+import {
+  arrayMove,
+  useSortable,
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { verticalListSortingStrategy } from "@dnd-kit/sortable";
-// e làm a 1 bài tập Todo App đơn giản: Input truyền vào title và description Danh sách công việc hiển thị bên dưới
-// Có thể thêm/ sửa / xoá công việc Khi click vào 1 công việc thì sẽ hiển thị ra detail của công việc đó.
-// Tailwind: Dùng màu sắc và spacing để làm đẹp.Ngôn ngữ sử dụng: reactjs, tailwind, react-hook-form, và dùng .map() để get ra list công việc.
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
-// sort (by what???), search, and different lists
-// Resizing columns
-// Drag and drop
-function TaskRow({ task, setTasks }) {
+function TaskRow({ task, setTasks, dragOverlay = false }) {
   const {
     attributes,
     listeners,
@@ -79,81 +78,84 @@ function TaskRow({ task, setTasks }) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: task.id });
+  } = useSortable({ id: task.id, animateLayoutChanges: () => false });
 
-  const style = {
-  transform: CSS.Translate.toString(transform),
-  transition,
-  zIndex: isDragging ? 999 : undefined,
-  boxShadow: isDragging ? "0 8px 20px rgba(0,0,0,0.2)" : undefined,
-  backgroundColor: isDragging ? "#ffffff" : undefined,
-  rotate: isDragging ? "1deg" : undefined,
-  borderRadius: "0.5rem", // optional for smoothness
-  position: isDragging ? "relative" : undefined,
-  pointerEvents: isDragging ? "none" : undefined, // prevent accidental nesting
-};
+  const style = dragOverlay
+    ? {
+        boxShadow: "0 8px 24px rgba(0,0,0,.25)",
+        backgroundColor: "#ffffff",
+        borderRadius: "0.5rem",
+        cursor: "grabbing",
+        display: "table-row",
+      }
+    : {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0 : 1,
+      };
 
+  const toggleComplete = (checked) =>
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, completed: checked } : t))
+    );
 
-  const removeTask = (id) => {
-    setTasks((prev) => prev.filter((task) => task.id !== id));
-  };
+  const removeTask = () =>
+    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+
+  const RowContent = (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell className="w-[80px] truncate">
+        <Checkbox
+          className="size-6 cursor-pointer"
+          checked={task.completed}
+          onCheckedChange={toggleComplete}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </TableCell>
+
+      {/* Attach drag listeners only to this body cell */}
+      <TableCell
+        className={`w-[150px] truncate font-medium ${
+          task.completed ? "line-through text-gray-400" : ""
+        }`}
+        {...(!dragOverlay && attributes)}
+        {...(!dragOverlay && listeners)}
+      >
+        {task.name}
+      </TableCell>
+
+      <TableCell
+        className={`w-50 whitespace-nowrap overflow-hidden text-ellipsis break-words text-left ${
+          task.completed ? "line-through text-gray-400" : ""
+        }`}
+      >
+        {task.description}
+      </TableCell>
+
+      <TableCell className="w-[80px] text-right">
+        <Button
+          variant="outline"
+          onClick={(e) => {
+            e.stopPropagation();
+            removeTask();
+          }}
+        >
+          <X />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+
+  if (dragOverlay) return RowContent;
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <TableRow
-          ref={setNodeRef}
-          {...attributes}
-          {...listeners}
-          style={style}
-          isDragging={isDragging}
-        >
-          <TableCell>
-            <Checkbox
-              checked={task.completed}
-              onCheckedChange={(checked) => {
-                setTasks((prev) =>
-                  prev.map((t) =>
-                    t.id === task.id ? { ...t, completed: checked } : t
-                  )
-                );
-              }}
-              onClick={(e) => e.stopPropagation()}
-              className="size-6 cursor-pointer"
-            />
-          </TableCell>
-          <TableCell
-            className={`font-medium ${
-              task.completed ? "line-through text-gray-400" : ""
-            }`}
-          >
-            {task.name}
-          </TableCell>
-          <TableCell
-            className={`whitespace-normal break-words ${
-              task.completed ? "line-through text-gray-400" : ""
-            }`}
-          >
-            <p>{task.description}</p>
-          </TableCell>
-          <TableCell className="text-right">
-            <Button variant="outline" onClick={() => removeTask(task.id)}>
-              <X />
-            </Button>
-          </TableCell>
-        </TableRow>
-      </DialogTrigger>
+      <DialogTrigger asChild>{RowContent}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{task.name}</DialogTitle>
           <DialogDescription>
-            <ul
-              className={
-                task.description.length <= 0
-                  ? ""
-                  : "my-4 ml-6 list-disc [&>li]:mt-2"
-              }
-            >
+            <ul className="my-4 ml-6 list-disc [&>li]:mt-2">
               <li>{task.description}</li>
             </ul>
           </DialogDescription>
@@ -168,29 +170,19 @@ function TaskRow({ task, setTasks }) {
   );
 }
 
-function Task({ tasks, setTasks }) {
-  return tasks.map((task) => (
-    <TaskRow key={task.id} task={task} setTasks={setTasks} />
-  ));
-}
+const Task = ({ tasks, setTasks }) =>
+  tasks.map((t) => <TaskRow key={t.id} task={t} setTasks={setTasks} />);
 
 function AddTask({ tasks, setTasks }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
   const addTask = () => {
-    let maxId = tasks.length + 1;
-    console.log(maxId);
-
-    const newTask = {
-      id: maxId,
-      name,
-      description,
-      completed: false,
-    };
-
+    if (!name.trim()) return;
+    const newTask = { id: Date.now(), name, description, completed: false };
     setTasks((prev) => [...prev, newTask]);
-    console.log(tasks);
+    setName("");
+    setDescription("");
   };
 
   return (
@@ -204,7 +196,6 @@ function AddTask({ tasks, setTasks }) {
           <Plus className="size-6" />
         </Button>
       </DialogTrigger>
-
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Task</DialogTitle>
@@ -212,30 +203,24 @@ function AddTask({ tasks, setTasks }) {
             What do you wish to accomplish today?
           </DialogDescription>
         </DialogHeader>
-
         <div className="flex items-center gap-2">
           <div className="grid flex-1 gap-2">
             <Input
               type="text"
               required
               placeholder="Your Task"
-              onChange={(e) => {
-                setName(e.target.value);
-                console.log(name);
-              }}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
             <Input
               type="text"
               required
               placeholder="Description"
-              onChange={(e) => {
-                setDescription(e.target.value);
-                console.log(description);
-              }}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </div>
         </div>
-
         <DialogFooter className="p-0">
           <div className="flex w-full justify-between items-center">
             <DialogClose asChild>
@@ -246,22 +231,12 @@ function AddTask({ tasks, setTasks }) {
                   setName("");
                   setDescription("");
                 }}
-                className="cursor-pointer"
               >
                 Cancel
               </Button>
             </DialogClose>
-
             <DialogClose asChild>
-              <Button
-                type="button"
-                onClick={() => {
-                  addTask();
-                  setName("");
-                  setDescription("");
-                }}
-                className="cursor-pointer"
-              >
+              <Button type="button" onClick={addTask}>
                 Save
               </Button>
             </DialogClose>
@@ -272,64 +247,89 @@ function AddTask({ tasks, setTasks }) {
   );
 }
 
-function Home({ tasks, setTasks }) {
+const Home = React.forwardRef(({ tasks, setTasks }, ref) => (
+  <Table
+    ref={ref}
+    className="table-auto w-full max-w-7xl mx-auto px-4 overflow-visible"
+  >
+    <TableHeader>
+      <TableRow>
+        <TableHead className="w-[80px]">Completed</TableHead>
+        <TableHead className="w-[150px]">Name</TableHead>
+        <TableHead className="w-[50ch]">Description</TableHead>
+        <TableHead className="w-[80px] text-right">Delete</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      <SortableContext
+        items={tasks.map((t) => t.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <Task tasks={tasks} setTasks={setTasks} />
+      </SortableContext>
+    </TableBody>
+  </Table>
+));
+
+function TodoList({ tasks, setTasks }) {
+  const [activeId, setActiveId] = useState(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    })
+  );
+  const tableRef = useRef(null);
+
+  const handleDragEnd = ({ active, over }) => {
+    if (!over || active.id === over.id) return;
+    setTasks((prev) => {
+      const oldIndex = prev.findIndex((t) => t.id === active.id);
+      const newIndex = prev.findIndex((t) => t.id === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  };
+
   return (
     <>
       <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-x-hidden bg-white">
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
           The Todo List
         </h2>
-
-        <Table className="table-auto w-full max-w-7xl mx-auto px-4 overflow-visible">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[80px]">Completed</TableHead>
-              <TableHead className="w-[150px]">Name</TableHead>
-              <TableHead className="w-[50ch]">Description</TableHead>
-              <TableHead className="w-[80px] text-right">Delete</TableHead>
-            </TableRow>
-          </TableHeader>{" "}
-          <TableBody className="overflow-visible">
-            <SortableContext
-              items={tasks.map((task) => task.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <Task tasks={tasks} setTasks={setTasks} />
-            </SortableContext>
-          </TableBody>
-        </Table>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={({ active }) => setActiveId(active.id)}
+          onDragEnd={(e) => {
+            handleDragEnd(e);
+            setActiveId(null);
+          }}
+          onDragCancel={() => setActiveId(null)}
+        >
+          <Home ref={tableRef} tasks={tasks} setTasks={setTasks} />
+          <DragOverlay adjustScale={false}>
+            {activeId && (
+              <table
+                style={{
+                  width: tableRef.current?.offsetWidth,
+                  tableLayout: "fixed",
+                }}
+              >
+                <tbody>
+                  <TaskRow
+                    task={tasks.find((t) => t.id === activeId)}
+                    setTasks={setTasks}
+                    dragOverlay
+                  />
+                </tbody>
+              </table>
+            )}
+          </DragOverlay>
+        </DndContext>
       </div>
-    </>
-  );
-}
-
-function TodoList({ tasks, setTasks }) {
-  const handleDragEnd = (event) => {
-    //idk what this means
-    const { active, over } = event;
-
-    //If the position is the same return
-    if (active.id === over.id) return;
-
-    //Switching ids thanks to useful function arrayMove from dnd-kit
-    setTasks((prev) => {
-      const oldIndex = prev.findIndex((task) => task.id === active.id);
-      const newIndex = prev.findIndex((task) => task.id === over.id);
-      return arrayMove(prev, oldIndex, newIndex);
-    });
-  };
-
-  const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor));
-
-  return (
-    <>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragEnd={handleDragEnd}
-      >
-        <Home tasks={tasks} setTasks={setTasks} />
-      </DndContext>
       <div className="fixed bottom-4 right-4 z-50">
         <AddTask tasks={tasks} setTasks={setTasks} />
       </div>
@@ -337,8 +337,7 @@ function TodoList({ tasks, setTasks }) {
   );
 }
 
-// -Pomodoro + setting doi thoi gian trong localstorage
-// -Router tu trong todoilist
+// Pomodoro and related components (unchanged)
 function ChangeSettings({
   pomodoroTime,
   setPomodoroTime,
@@ -348,9 +347,7 @@ function ChangeSettings({
   const handleSave = () => {
     localStorage.setItem("pomodoroTime", pomodoroTime);
     localStorage.setItem("shortBreakTime", shortBreakTime);
-    console.log("Saved!");
   };
-
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -364,7 +361,6 @@ function ChangeSettings({
           </Button>
         </div>
       </DialogTrigger>
-
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Pomodoro Settings</DialogTitle>
@@ -372,7 +368,6 @@ function ChangeSettings({
             Change your pomodoro status times
           </DialogDescription>
         </DialogHeader>
-
         <div className="grid gap-4">
           <div className="flex flex-row justify-between">
             <Label>Pomodoro</Label>
@@ -395,7 +390,6 @@ function ChangeSettings({
             />
           </div>
         </div>
-
         <DialogFooter className="p-0 mt-4">
           <DialogClose asChild>
             <Button variant="secondary">Cancel</Button>
@@ -560,11 +554,12 @@ function HeaderTabs() {
 
 function App() {
   const [pomodoroTime, setPomodoroTime] = useState(
-    localStorage.getItem("pomodoroTime")
+    () => parseInt(localStorage.getItem("pomodoroTime")) || 25
   );
   const [shortBreakTime, setShortBreakTime] = useState(
-    localStorage.getItem("shortBreakTime")
+    () => parseInt(localStorage.getItem("shortBreakTime")) || 5
   );
+
   const [minutes, setMinutes] = useState(0);
   const [ticking, setTicking] = useState(false);
   const [status, setStatus] = useState(["Pomodoro", "Short Break"]);
@@ -573,11 +568,34 @@ function App() {
   const [tasks, setTasks] = useState([
     {
       id: 1,
-      name: "Added dragging to task",
-      description: "Hold and drag to rearrange with other tasks",
+      name: "Add dynamicness to tabs and also cursor pointer highlight",
+      description: "",
       completed: false,
     },
-  
+    {
+      id: 2,
+      name: "Make current status a dropdown menu",
+      description: "turn status[0].toString() into a dropdown menu",
+      completed: false,
+    },
+    {
+      id: 3,
+      name: "Switching status after finishing one",
+      description: "self explanatory",
+      completed: false,
+    },
+    {
+      id: 4,
+      name: "Arrow functionality",
+      description: "switch only from pomo and short break",
+      completed: false,
+    },
+    {
+      id: 5,
+      name: "Settings",
+      description: "settings tab that allwos people to modify status times",
+      completed: false,
+    },
   ]);
 
   //Clock logic
@@ -608,7 +626,7 @@ function App() {
     return () => clearInterval(interval);
   }, [ticking, seconds]);
 
-  //Clock logic
+  //Settings Logic
   useEffect(() => {
     setTicking(false);
     if (status[0] === "Pomodoro") {
@@ -618,11 +636,7 @@ function App() {
       setMinutes(shortBreakTime);
       setSeconds(0);
     }
-  }, [
-    status,
-    localStorage.getItem("pomodoroTime"),
-    localStorage.getItem("shortBreakTime"),
-  ]);
+  }, [status, pomodoroTime, shortBreakTime]);
 
   return (
     <>
