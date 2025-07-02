@@ -51,19 +51,65 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  closestCorners,
+  DndContext,
+  PointerSensor,
+  TouchSensor,
+  useSensors,
+  useSensor,
+} from "@dnd-kit/core";
 
-function Task({ tasks, setTasks }) {
+import { arrayMove, useSortable } from "@dnd-kit/sortable";
+import { SortableContext } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { verticalListSortingStrategy } from "@dnd-kit/sortable";
+// e làm a 1 bài tập Todo App đơn giản: Input truyền vào title và description Danh sách công việc hiển thị bên dưới
+// Có thể thêm/ sửa / xoá công việc Khi click vào 1 công việc thì sẽ hiển thị ra detail của công việc đó.
+// Tailwind: Dùng màu sắc và spacing để làm đẹp.Ngôn ngữ sử dụng: reactjs, tailwind, react-hook-form, và dùng .map() để get ra list công việc.
+
+// sort (by what???), search, and different lists
+// Resizing columns
+// Drag and drop
+function TaskRow({ task, setTasks }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+  transform: CSS.Translate.toString(transform),
+  transition,
+  zIndex: isDragging ? 999 : undefined,
+  boxShadow: isDragging ? "0 8px 20px rgba(0,0,0,0.2)" : undefined,
+  backgroundColor: isDragging ? "#ffffff" : undefined,
+  rotate: isDragging ? "1deg" : undefined,
+  borderRadius: "0.5rem", // optional for smoothness
+  position: isDragging ? "relative" : undefined,
+  pointerEvents: isDragging ? "none" : undefined, // prevent accidental nesting
+};
+
+
   const removeTask = (id) => {
     setTasks((prev) => prev.filter((task) => task.id !== id));
   };
 
-  return tasks.map((task) => (
-    <Dialog key={task.id}>
+  return (
+    <Dialog>
       <DialogTrigger asChild>
-        <TableRow>
+        <TableRow
+          ref={setNodeRef}
+          {...attributes}
+          {...listeners}
+          style={style}
+          isDragging={isDragging}
+        >
           <TableCell>
             <Checkbox
-              className="size-6 cursor-pointer"
               checked={task.completed}
               onCheckedChange={(checked) => {
                 setTasks((prev) =>
@@ -72,10 +118,10 @@ function Task({ tasks, setTasks }) {
                   )
                 );
               }}
-              onClick={(e) => e.stopPropagation()} // prevent dialog from opening on checkbox click
+              onClick={(e) => e.stopPropagation()}
+              className="size-6 cursor-pointer"
             />
           </TableCell>
-
           <TableCell
             className={`font-medium ${
               task.completed ? "line-through text-gray-400" : ""
@@ -83,34 +129,31 @@ function Task({ tasks, setTasks }) {
           >
             {task.name}
           </TableCell>
-
           <TableCell
             className={`whitespace-normal break-words ${
               task.completed ? "line-through text-gray-400" : ""
             }`}
           >
-            <p className=""> {task.description}</p>
+            <p>{task.description}</p>
           </TableCell>
-
           <TableCell className="text-right">
-            <Button
-              variant="outline"
-              onClick={() => {
-                removeTask(task.id);
-              }}
-              className="cursor-pointer"
-            >
-              <X className="cursor-pointer" />
+            <Button variant="outline" onClick={() => removeTask(task.id)}>
+              <X />
             </Button>
           </TableCell>
         </TableRow>
       </DialogTrigger>
-
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{task.name}</DialogTitle>
           <DialogDescription>
-            <ul className="my-4 ml-6 list-disc [&>li]:mt-2">
+            <ul
+              className={
+                task.description.length <= 0
+                  ? ""
+                  : "my-4 ml-6 list-disc [&>li]:mt-2"
+              }
+            >
               <li>{task.description}</li>
             </ul>
           </DialogDescription>
@@ -122,6 +165,12 @@ function Task({ tasks, setTasks }) {
         </DialogHeader>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function Task({ tasks, setTasks }) {
+  return tasks.map((task) => (
+    <TaskRow key={task.id} task={task} setTasks={setTasks} />
   ));
 }
 
@@ -231,7 +280,7 @@ function Home({ tasks, setTasks }) {
           The Todo List
         </h2>
 
-        <Table className="table-auto w-full max-w-7xl mx-auto px-4">
+        <Table className="table-auto w-full max-w-7xl mx-auto px-4 overflow-visible">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[80px]">Completed</TableHead>
@@ -239,9 +288,14 @@ function Home({ tasks, setTasks }) {
               <TableHead className="w-[50ch]">Description</TableHead>
               <TableHead className="w-[80px] text-right">Delete</TableHead>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            <Task tasks={tasks} setTasks={setTasks} />
+          </TableHeader>{" "}
+          <TableBody className="overflow-visible">
+            <SortableContext
+              items={tasks.map((task) => task.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <Task tasks={tasks} setTasks={setTasks} />
+            </SortableContext>
           </TableBody>
         </Table>
       </div>
@@ -250,9 +304,32 @@ function Home({ tasks, setTasks }) {
 }
 
 function TodoList({ tasks, setTasks }) {
+  const handleDragEnd = (event) => {
+    //idk what this means
+    const { active, over } = event;
+
+    //If the position is the same return
+    if (active.id === over.id) return;
+
+    //Switching ids thanks to useful function arrayMove from dnd-kit
+    setTasks((prev) => {
+      const oldIndex = prev.findIndex((task) => task.id === active.id);
+      const newIndex = prev.findIndex((task) => task.id === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  };
+
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor));
+
   return (
     <>
-      <Home tasks={tasks} setTasks={setTasks} />
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragEnd={handleDragEnd}
+      >
+        <Home tasks={tasks} setTasks={setTasks} />
+      </DndContext>
       <div className="fixed bottom-4 right-4 z-50">
         <AddTask tasks={tasks} setTasks={setTasks} />
       </div>
@@ -496,34 +573,11 @@ function App() {
   const [tasks, setTasks] = useState([
     {
       id: 1,
-      name: "Add dynamicness to tabs and also cursor pointer highlight",
-      description: "",
+      name: "Added dragging to task",
+      description: "Hold and drag to rearrange with other tasks",
       completed: false,
     },
-    {
-      id: 2,
-      name: "Make current status a dropdown menu",
-      description: "turn status[0].toString() into a dropdown menu",
-      completed: false,
-    },
-    {
-      id: 3,
-      name: "Switching status after finishing one",
-      description: "self explanatory",
-      completed: false,
-    },
-    {
-      id: 4,
-      name: "Arrow functionality",
-      description: "switch only from pomo and short break",
-      completed: false,
-    },
-    {
-      id: 5,
-      name: "Settings",
-      description: "settings tab that allwos people to modify status times",
-      completed: false,
-    },
+  
   ]);
 
   //Clock logic
@@ -564,8 +618,11 @@ function App() {
       setMinutes(shortBreakTime);
       setSeconds(0);
     }
-  }, [status, localStorage.getItem("pomodoroTime"), localStorage.getItem("shortBreakTime")]);
-
+  }, [
+    status,
+    localStorage.getItem("pomodoroTime"),
+    localStorage.getItem("shortBreakTime"),
+  ]);
 
   return (
     <>
