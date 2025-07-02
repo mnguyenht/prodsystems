@@ -27,7 +27,14 @@ import {
 } from "@/components/ui/table";
 import { Toaster, toast } from "sonner";
 
-import { Plus, X, Settings, ChevronLast, ChevronLeft } from "lucide-react";
+import {
+  Plus,
+  X,
+  Settings,
+  ChevronLast,
+  ChevronLeft,
+  ChevronDown,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,6 +42,15 @@ import "@fontsource/manrope";
 import "@fontsource/manrope/400.css";
 import "@fontsource/manrope/600.css";
 import "@fontsource/manrope/700.css";
+import { useLocation } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function Task({ tasks, setTasks }) {
   const removeTask = (id) => {
@@ -246,105 +262,111 @@ function TodoList({ tasks, setTasks }) {
 
 // -Pomodoro + setting doi thoi gian trong localstorage
 // -Router tu trong todoilist
-function ChangeSettings() {
+function ChangeSettings({
+  pomodoroTime,
+  setPomodoroTime,
+  shortBreakTime,
+  setShortBreakTime,
+}) {
+  const handleSave = () => {
+    localStorage.setItem("pomodoroTime", pomodoroTime);
+    localStorage.setItem("shortBreakTime", shortBreakTime);
+    console.log("Saved!");
+  };
+
   return (
-    <>
-      <Dialog>
-        <DialogTrigger asChild>
-          <div className="fixed bottom-4 right-4 z-50 cursor-pointer">
-            {" "}
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-12 cursor-pointer"
-            >
-              <Settings className="size-6" />
-            </Button>
+    <Dialog>
+      <DialogTrigger asChild>
+        <div className="fixed bottom-4 right-4 z-50 cursor-pointer">
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-12 cursor-pointer"
+          >
+            <Settings className="size-6" />
+          </Button>
+        </div>
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Pomodoro Settings</DialogTitle>
+          <DialogDescription>
+            Change your pomodoro status times
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4">
+          <div className="flex flex-row justify-between">
+            <Label>Pomodoro</Label>
+            <Input
+              type="number"
+              placeholder="(Minutes)"
+              value={pomodoroTime}
+              onChange={(e) => setPomodoroTime(parseInt(e.target.value))}
+              className="w-24 text-center"
+            />
           </div>
-        </DialogTrigger>
+          <div className="flex flex-row justify-between">
+            <Label>Short Break</Label>
+            <Input
+              type="number"
+              placeholder="(Minutes)"
+              value={shortBreakTime}
+              onChange={(e) => setShortBreakTime(parseInt(e.target.value))}
+              className="w-24 text-center"
+            />
+          </div>
+        </div>
 
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Task</DialogTitle>
-            <DialogDescription>
-              What do you wish to accomplish today?
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="p-0">
-            <div className="flex w-full justify-between items-center">
-              <DialogClose asChild>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    console.log("pressed this one");
-                  }}
-                  className="cursor-pointer"
-                >
-                  Cancel
-                </Button>
-              </DialogClose>
-
-              <DialogClose asChild>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    console.log("pressed this one");
-                  }}
-                  className="cursor-pointer"
-                >
-                  Save
-                </Button>
-              </DialogClose>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+        <DialogFooter className="p-0 mt-4">
+          <DialogClose asChild>
+            <Button variant="secondary">Cancel</Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button onClick={handleSave}>Save</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-function Timer({
-  seconds,
-  setSeconds,
-  minutes,
-  setMinutes,
-  ticking,
-  setTicking,
-}) {
-  useEffect(() => {
-    if (!ticking) return;
-
-    const interval = setInterval(() => {
-      //Tick down seconds
-      setSeconds((prevSeconds) => {
-        if (prevSeconds === 0) {
-          return 59;
-        } else {
-          return prevSeconds - 1;
-        }
-      });
-      //Timer finished congats amazing also seconds == 1 because lifecycle reasons
-      setMinutes((prevMinutes) => {
-        if (prevMinutes === 0 && seconds === 1) {
-          setTicking(false);
-          return 0;
-        }
-
-        return seconds === 0 ? prevMinutes - 1 : prevMinutes;
-      });
-    }, 50);
-    //Making it fast for prod
-
-    return () => clearInterval(interval);
-  }, [ticking, seconds]);
-
+function Timer({ seconds, minutes }) {
   return (
     <>
       {minutes - 10 < 0 ? "0" + minutes : minutes}:
       {seconds - 10 < 0 ? "0" + seconds : seconds}
     </>
+  );
+}
+
+function DropDown({ status, setStatus, setTicking }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex items-center gap-2 rounded-md border cursor-pointer">
+        <ChevronDown className="size-4" />
+        <span>{status[0]}</span>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent>
+        {status.map((item, index) => (
+          <DropdownMenuItem
+            key={item}
+            onClick={() => {
+              // Move selected item to front
+
+              const reordered = [item, ...status.filter((s) => s !== item)];
+              setStatus(reordered);
+              setTicking(false);
+            }}
+            className="cursor-pointer"
+          >
+            {item}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -357,10 +379,19 @@ function Pomodoro({
   setMinutes,
   ticking,
   setTicking,
+  pomodoroTime,
+  setPomodoroTime,
+  shortBreakTime,
+  setShortBreakTime,
 }) {
   return (
     <>
-      <ChangeSettings />
+      <ChangeSettings
+        pomodoroTime={pomodoroTime}
+        setPomodoroTime={setPomodoroTime}
+        shortBreakTime={shortBreakTime}
+        setShortBreakTime={setShortBreakTime}
+      />
       <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-x-hidden bg-white ">
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
           The Pomodoro Timer
@@ -375,21 +406,27 @@ function Pomodoro({
               setMinutes={setMinutes}
               ticking={ticking}
               setTicking={setTicking}
+              status={status}
+              setStatus={setStatus}
             />
           </h1>
           <div className="flex flex-col items-center overflow-x-hidden bg-accent gap-4 font-manrope">
-            <p className="font-manrope text-lg">
-              Current Status: {status[0].toString()}
+            <p className="font-manrope text-lg flex flex-row gap-1">
+              Current Status:{" "}
+              <DropDown
+                status={status}
+                setStatus={setStatus}
+                setTicking={setTicking}
+              />
             </p>
 
             <div className="flex flex-row gap-6 items-center justify-center">
-              <ChevronLast className="size-10 scale-x-[-1] cursor-pointer" />
+              <ChevronLast className="size-10 scale-x-[-1] cursor-pointer opacity-0" />
               <Button
                 className="scroll-m-20 text-center w-40 h-15 text-xl tracking-tight text-balance cursor-pointer"
                 onClick={() => {
                   if (minutes === 0 && seconds === 0) {
-                    toast.error("bro");
-
+                    toast.error("buh");
                     return 0;
                   }
                   setTicking((prev) => !prev);
@@ -397,7 +434,15 @@ function Pomodoro({
               >
                 {ticking ? "STOP" : "START"}
               </Button>
-              <ChevronLast className="size-10 cursor-pointer" />
+              <ChevronLast
+                className="size-10 cursor-pointer"
+                onClick={() => {
+                  // Move selected item to front
+                  const reordered = [status[1], status[0]];
+                  setStatus(reordered);
+                  setTicking(false);
+                }}
+              />
             </div>
           </div>
         </div>
@@ -406,18 +451,53 @@ function Pomodoro({
   );
 }
 
+function HeaderTabs() {
+  const location = useLocation();
+
+  const pathToTab = {
+    "/": "todolist",
+    "/Pomodoro": "pomodoro",
+  };
+
+  const currentTab = pathToTab[location.pathname] || "todolist";
+
+  return (
+    <div className="fixed top-4 left-4 z-50">
+      <Tabs value={currentTab} className="w-[400px]">
+        <TabsList>
+          <Link to="/">
+            <TabsTrigger value="todolist" className="cursor-pointer">
+              Todolist
+            </TabsTrigger>
+          </Link>
+          <Link to="/Pomodoro">
+            <TabsTrigger value="pomodoro" className="cursor-pointer">
+              Pomodoro
+            </TabsTrigger>
+          </Link>
+        </TabsList>
+      </Tabs>
+    </div>
+  );
+}
+
 function App() {
-  const [minutes, setMinutes] = useState(1);
+  const [pomodoroTime, setPomodoroTime] = useState(
+    localStorage.getItem("pomodoroTime")
+  );
+  const [shortBreakTime, setShortBreakTime] = useState(
+    localStorage.getItem("shortBreakTime")
+  );
+  const [minutes, setMinutes] = useState(0);
   const [ticking, setTicking] = useState(false);
-  const [status, setStatus] = useState(["Pomodoro", "Long Break", "Short"]);
+  const [status, setStatus] = useState(["Pomodoro", "Short Break"]);
   const [seconds, setSeconds] = useState(0);
 
   const [tasks, setTasks] = useState([
     {
       id: 1,
       name: "Add dynamicness to tabs and also cursor pointer highlight",
-      description:
-        "",
+      description: "",
       completed: false,
     },
     {
@@ -429,35 +509,69 @@ function App() {
     {
       id: 3,
       name: "Switching status after finishing one",
-      description:
-        "self explanatory",
+      description: "self explanatory",
       completed: false,
     },
     {
       id: 4,
       name: "Arrow functionality",
-      description:
-        "switch only from pomo and short break",
+      description: "switch only from pomo and short break",
+      completed: false,
+    },
+    {
+      id: 5,
+      name: "Settings",
+      description: "settings tab that allwos people to modify status times",
       completed: false,
     },
   ]);
+
+  //Clock logic
+  useEffect(() => {
+    if (!ticking) return;
+
+    const interval = setInterval(() => {
+      //Tick down seconds
+      setSeconds((prevSeconds) => {
+        if (minutes === 0 && seconds === 0) {
+          const reordered = [status[1], status[0]];
+          setStatus(reordered);
+          return 0;
+        }
+
+        if (prevSeconds === 0) {
+          return 59;
+        } else {
+          return prevSeconds - 1;
+        }
+      });
+      //Timer finished congats amazing also seconds == 1 because lifecycle reasons
+      setMinutes((prevMinutes) => {
+        return seconds === 0 && minutes !== 0 ? prevMinutes - 1 : prevMinutes;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [ticking, seconds]);
+
+  //Clock logic
+  useEffect(() => {
+    setTicking(false);
+    if (status[0] === "Pomodoro") {
+      setMinutes(pomodoroTime);
+      setSeconds(0);
+    } else {
+      setMinutes(shortBreakTime);
+      setSeconds(0);
+    }
+  }, [status, localStorage.getItem("pomodoroTime"), localStorage.getItem("shortBreakTime")]);
+
 
   return (
     <>
       <Toaster position="bottom-center" />;
       <BrowserRouter>
-        <div className="fixed top-4 left-4 z-50">
-          <Tabs defaultValue="account" className="w-[400px]">
-            <TabsList>
-              <Link to="/">
-                <TabsTrigger value="account"> Todolist</TabsTrigger>
-              </Link>
-              <Link to="/Pomodoro">
-                <TabsTrigger value="password">Pomodoro</TabsTrigger>
-              </Link>
-            </TabsList>
-          </Tabs>
-        </div>
+        <HeaderTabs />
         <Routes>
           <Route
             path="/"
@@ -475,6 +589,10 @@ function App() {
                 setMinutes={setMinutes}
                 ticking={ticking}
                 setTicking={setTicking}
+                pomodoroTime={pomodoroTime}
+                setPomodoroTime={setPomodoroTime}
+                shortBreakTime={shortBreakTime}
+                setShortBreakTime={setShortBreakTime}
               />
             }
           />
