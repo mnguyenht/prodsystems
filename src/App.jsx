@@ -39,6 +39,7 @@ import {
   CircleX,
   PencilLine,
   Trash,
+  Search,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -103,7 +104,7 @@ function TaskRow({ task, setTasks, dragOverlay = false }) {
   const style = dragOverlay
     ? {
         boxShadow: "0 8px 24px rgba(0,0,0,.25)",
-        backgroundColor: "#ffffff",
+        backgroundColor: "#fff",
         borderRadius: "0.5rem",
         cursor: "grabbing",
         display: "table-row",
@@ -128,39 +129,45 @@ function TaskRow({ task, setTasks, dragOverlay = false }) {
       style={style}
       {...(!dragOverlay && attributes)}
       {...(!dragOverlay && listeners)}
+      className=""
     >
-      <TableCell className="w-[80px] truncate">
+      <TableCell className="px-4 py-2 w-[80px]">
         <Checkbox
           className="size-6 cursor-pointer"
           checked={task.completed}
           onCheckedChange={toggleComplete}
           onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
         />
       </TableCell>
 
       <TableCell
-        className={`w-[150px] truncate font-medium ${
-          task.completed ? "line-through text-gray-400" : ""
-        }`}
+        className={
+          "px-4 py-2 w-[150px] font-medium break-words whitespace-normal " +
+          (task.completed ? "line-through text-gray-400" : "")
+        }
       >
         {task.name}
       </TableCell>
 
       <TableCell
-        className={`w-50 whitespace-nowrap overflow-hidden text-ellipsis break-words text-left ${
-          task.completed ? "line-through text-gray-400" : ""
-        }`}
+        className={
+          "px-4 py-2 w-50 break-words whitespace-normal text-left " +
+          (task.completed ? "line-through text-gray-400" : "")
+        }
       >
         {task.description}
       </TableCell>
 
-      <TableCell className="w-[80px] text-right">
+      <TableCell className="px-4 py-2 w-[80px] text-right">
         <Button
           variant="outline"
+          className="cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
             removeTask();
           }}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           <X />
         </Button>
@@ -170,34 +177,27 @@ function TaskRow({ task, setTasks, dragOverlay = false }) {
 
   if (dragOverlay) return RowContent;
 
-  // ✅ Wrap RowContent in ContextMenu
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{RowContent}</ContextMenuTrigger>
       <ContextMenuContent className="p-2">
         <ContextMenuItem>
-          <Check />
-          Check
+          <Check /> Check
         </ContextMenuItem>
         <ContextMenuItem>
-          <ArrowLeftRight />
-          Move To
+          <ArrowLeftRight /> Move To
         </ContextMenuItem>
         <ContextMenuItem>
-          <Info />
-          Info
+          <Info /> Info
         </ContextMenuItem>
         <ContextMenuItem>
-          <CircleX />
-          Delete
+          <CircleX /> Delete
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );
 }
 
-const Task = ({ tasks, setTasks }) =>
-  tasks.map((t) => <TaskRow key={t.id} task={t} setTasks={setTasks} />);
 
 function AddTask({ tasks, setTasks }) {
   const [name, setName] = useState("");
@@ -257,12 +257,17 @@ function AddTask({ tasks, setTasks }) {
                   setName("");
                   setDescription("");
                 }}
+                className="cursor-pointer"
               >
                 Cancel
               </Button>
             </DialogClose>
             <DialogClose asChild>
-              <Button type="button" onClick={addTask}>
+              <Button
+                type="button"
+                onClick={addTask}
+                className="cursor-pointer"
+              >
                 Save
               </Button>
             </DialogClose>
@@ -273,17 +278,38 @@ function AddTask({ tasks, setTasks }) {
   );
 }
 
-const Home = React.forwardRef(({ tasks, setTasks }, ref) => (
+const Home = React.forwardRef(({ tasks, setTasks, search }, ref) => (
   <Table
     ref={ref}
-    className="table-auto w-full max-w-7xl mx-auto px-4 overflow-hidden"
+    className="table-auto w-full max-w-7xl mx-auto px-4 overflow-hidden "
   >
     <TableHeader>
-      <TableRow>
-        <TableHead className="w-[80px]">Completed</TableHead>
-        <TableHead className="w-[150px]">Name</TableHead>
-        <TableHead className="w-[50ch]">Description</TableHead>
-        <TableHead className="w-[80px] text-right">Delete</TableHead>
+      <TableRow className="">
+        <TableHead className="w-[5%] relative px-4 py-2 text-left">
+          Completed
+          <Separator
+            orientation="vertical"
+            className="absolute inset-y-0 right-0"
+          />
+        </TableHead>
+
+        <TableHead className="w-[25%] relative px-4 py-2 text-left">
+          Name
+          <Separator
+            orientation="vertical"
+            className="absolute inset-y-0 right-0"
+          />
+        </TableHead>
+
+        <TableHead className="w-[25%] relative px-4 py-2 text-left">
+          Description
+          <Separator
+            orientation="vertical"
+            className="absolute inset-y-0 right-0"
+          />
+        </TableHead>
+
+        <TableHead className="w-[2%] relative px-4 py-2 text-right">Delete</TableHead>
       </TableRow>
     </TableHeader>
 
@@ -292,15 +318,164 @@ const Home = React.forwardRef(({ tasks, setTasks }, ref) => (
         items={tasks.map((t) => t.id)}
         strategy={verticalListSortingStrategy}
       >
-        <Task tasks={tasks} setTasks={setTasks} />
+        <Task tasks={tasks} setTasks={setTasks} search={search} />
       </SortableContext>
     </TableBody>
   </Table>
 ));
 
-function TodoList({ tasks, setTasks }) {
-  const [currentList, setCurrentList] = useState("List1");
-  const [currentSort, setCurrentSort] = useState("Id");
+function TopBar({
+  currentSort,
+  setCurrentSort,
+  currentList,
+  setCurrentList,
+  setSearch,
+}) {
+  return (
+    <div className="flex relative flex-row gap-8 w-full max-w-7xl items-center mx-auto px-4 py-1  overflow-hidden justify-between ">
+      <div className="flex flex-row gap-4 items-center">
+        <Select
+          value={currentList}
+          onValueChange={(val) => {
+            setCurrentList(val);
+            console.log("Current list:", val);
+          }}
+        >
+          <SelectTrigger className="w-relative hover:border-black cursor-pointer">
+            <SelectValue
+              placeholder={currentList}
+              className="hover:border-b-2 border-b-transparent"
+            />
+          </SelectTrigger>
+          <SelectContent>
+            <div className="px-2 py-1 text-sm text-gray-500">Select a List</div>
+            <Separator className="my-2 mx-auto" style={{ width: "90%" }} />
+            <SelectItem value="All Lists">All Lists</SelectItem>
+            <SelectItem value="List 1">List 1</SelectItem>
+            <SelectItem value="List 2">List 2</SelectItem>
+          </SelectContent>
+        </Select>
+        <Dialog>
+          <DialogTrigger>
+            {" "}
+            <Trash
+              className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
+              strokeWidth={1.5}
+            />
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Are you absolutely sure?</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. This will permanently delete the
+                list and all of its tasks.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <div className="p-0 mt-2 flex flex-row justify-between w-full">
+                <DialogClose asChild>
+                  <Button
+                    variant="secondary"
+                    className="hover:background-black cursor-pointer transition-colors duration-200"
+                  >
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button variant="destructive" className="cursor-pointer">
+                    Delete
+                  </Button>
+                </DialogClose>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        <Dialog>
+          <DialogTrigger>
+            <PencilLine
+              className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
+              strokeWidth={1.5}
+            />
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Rename This List:</DialogTitle>
+            </DialogHeader>
+            <Input
+              type="text"
+              autoComplete="off"
+              placeholder="Awesome List 2"
+              className="my-2"
+            />
+            <DialogFooter>
+              <div className="p-0 flex flex-row justify-between w-full">
+                <DialogClose asChild>
+                  <Button
+                    variant="secondary"
+                    className="hover:background-black cursor-pointer transition-colors duration-200"
+                  >
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button className="cursor-pointer">Update</Button>
+                </DialogClose>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <div className="relative">
+          <Search
+            size="20"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+          <Input
+            type="text"
+            autoComplete="off"
+            placeholder="Search..."
+            className="pl-10 w-48"
+            onChange={(val) => {
+              setSearch(val.target.value);
+              console.log("Current Search:", val);
+            }}
+          />
+        </div>
+      </div>
+
+      <Select
+        value={currentSort}
+        onValueChange={(val) => {
+          setCurrentSort(val);
+          console.log("Current Sort:", val);
+        }}
+      >
+        <SelectTrigger className="w-relative hover:border-black cursor-pointer">
+          <SelectValue placeholder="Sort by" />
+        </SelectTrigger>
+        <SelectContent>
+          <div className="px-2 py-1 text-sm text-gray-500">Sorting By:</div>
+          <Separator className="my-2 mx-auto" style={{ width: "90%" }} />
+          <SelectItem value="Id">Id</SelectItem>
+          <SelectItem value="Alphabetical">Alphabetical</SelectItem>
+          <SelectItem value="Completed">Completed</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+function TodoList({
+  tasks,
+  setTasks,
+  currentSort,
+  setCurrentSort,
+  currentList,
+  setCurrentList,
+  search,
+  setSearch,
+}) {
   const [activeId, setActiveId] = useState(null);
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -328,6 +503,13 @@ function TodoList({ tasks, setTasks }) {
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
           The Todo List
         </h2>
+        <TopBar
+          currentSort={currentSort}
+          setCurrentSort={setCurrentSort}
+          currentList={currentList}
+          setCurrentList={setCurrentList}
+          setSearch={setSearch}
+        />
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -338,54 +520,12 @@ function TodoList({ tasks, setTasks }) {
           }}
           onDragCancel={() => setActiveId(null)}
         >
-          <div className="flex flex-row gap-8 w-full max-w-7xl items-center mx-auto px-4  overflow-hidden justify-between ">
-            <div className="flex flex-row gap-4 items-center">
-              <Select value={currentList} onValueChange={setCurrentList}>
-                <SelectTrigger className="w-relative hover:border-black cursor-pointer">
-                  <SelectValue
-                    placeholder={currentList}
-                    className="hover:border-b-2 border-b-transparent"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <div className="px-2 py-1 text-sm text-gray-500">
-                    Select a List
-                  </div>
-                  <Separator
-                    className="my-2 mx-auto"
-                    style={{ width: "90%" }}
-                  />
-                  <SelectItem value="List1">List 1</SelectItem>
-                  <SelectItem value="List2">List 2</SelectItem>
-                  <SelectItem value="List3">List 3</SelectItem>
-                </SelectContent>
-              </Select>
-              <Trash
-                className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
-                strokeWidth={1.5}
-              />
-
-              <PencilLine
-                className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
-                strokeWidth={1.5}
-              />
-            </div>
-            <Select value={currentSort} onValueChange={setCurrentSort}>
-              <SelectTrigger className="w-relative hover:border-black cursor-pointer">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <div className="px-2 py-1 text-sm text-gray-500">
-                  Sorting By:
-                </div>
-                <Separator className="my-2 mx-auto" style={{ width: "90%" }} />
-                <SelectItem value="Id">Id</SelectItem>
-                <SelectItem value="Alphabetical">Alphabetical</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Home ref={tableRef} tasks={tasks} setTasks={setTasks} />
+          <Home
+            ref={tableRef}
+            tasks={tasks}
+            setTasks={setTasks}
+            search={search}
+          />
           <DragOverlay adjustScale={false}>
             {activeId && (
               <table
@@ -414,7 +554,12 @@ function TodoList({ tasks, setTasks }) {
         </DndContext>
       </div>
       <div className="fixed bottom-4 right-4 z-50">
-        <AddTask tasks={tasks} setTasks={setTasks} />
+        <AddTask
+          tasks={tasks}
+          setTasks={setTasks}
+          search={search}
+          setSearch={setSearch}
+        />
       </div>
     </>
   );
@@ -635,7 +780,72 @@ function HeaderTabs() {
   );
 }
 
+function Task({ tasks, setTasks, search }) {
+  const filtered = tasks.filter((t) =>
+    (t.name || "").toLowerCase().includes((search || "").toLowerCase())
+  );
+
+  return filtered.map((t) => (
+    <TaskRow key={t.id} task={t} setTasks={setTasks} />
+  ));
+}
+
 function App() {
+  //TDL
+  const [tasks, setTasks] = useState([
+    {
+      id: 1,
+      list: "List1",
+      name: "Add dynamicness to tabs and also cursor pointer highlight",
+      description: "",
+      completed: false,
+    },
+    {
+      id: 2,
+      list: "List1",
+      name: "Make current status a dropdown menu",
+      description: "turn status[0].toString() into a dropdown menu",
+      completed: false,
+    },
+    {
+      id: 3,
+      list: "List2",
+      name: "Switching status after finishing one",
+      description: "self explanatory",
+      completed: false,
+    },
+    {
+      id: 4,
+      list: "List2",
+      name: "Arrow functionality",
+      description: "switch only from pomo and short break",
+      completed: false,
+    },
+    {
+      id: 5,
+      list: "List2",
+      name: "Settings",
+      description: "settings tab that allwos people to modify status times",
+      completed: false,
+    },
+  ]);
+  const [currentList, setCurrentList] = useState("All Lists");
+  const [currentSort, setCurrentSort] = useState("Id");
+  const [search, setSearch] = useState("");
+
+  // useEffect(() => {
+  //   return () => {};
+  // }, [search]);
+
+  // useEffect(() => {
+  //   if (currentSort === "Id") {
+  //     setSort(tasks.sort((a, b) => a.id - b.id));
+  //   }
+
+  //   return () => {};
+  // }, [currentSort]);
+
+  //POMODORO
   const [pomodoroTime, setPomodoroTime] = useState(
     () => parseInt(localStorage.getItem("pomodoroTime")) || 25
   );
@@ -647,39 +857,6 @@ function App() {
   const [ticking, setTicking] = useState(false);
   const [status, setStatus] = useState(["Pomodoro", "Short Break"]);
   const [seconds, setSeconds] = useState(0);
-
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      name: "Add dynamicness to tabs and also cursor pointer highlight",
-      description: "",
-      completed: false,
-    },
-    {
-      id: 2,
-      name: "Make current status a dropdown menu",
-      description: "turn status[0].toString() into a dropdown menu",
-      completed: false,
-    },
-    {
-      id: 3,
-      name: "Switching status after finishing one",
-      description: "self explanatory",
-      completed: false,
-    },
-    {
-      id: 4,
-      name: "Arrow functionality",
-      description: "switch only from pomo and short break",
-      completed: false,
-    },
-    {
-      id: 5,
-      name: "Settings",
-      description: "settings tab that allwos people to modify status times",
-      completed: false,
-    },
-  ]);
 
   //Clock logic
   useEffect(() => {
@@ -733,6 +910,12 @@ function App() {
               <TodoList
                 tasks={tasks}
                 setTasks={setTasks}
+                currentList={currentList}
+                setCurrentList={setCurrentList}
+                currentSort={currentSort}
+                setCurrentSort={setCurrentSort}
+                search={search}
+                setSearch={setSearch}
                 className="overflow-hidden"
               />
             }
