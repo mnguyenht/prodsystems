@@ -1,9 +1,0 @@
-/* Prevent horizontal overflow globally */
-html, body {
-  overflow-x: hidden;
-}
-
-/* Prevent unwanted scrollbars in TableBody */
-table, thead, tbody, tr {
-  overflow: visible !important;
-}

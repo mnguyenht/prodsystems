@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+html, body {
+  overflow: hidden;
+  height: 100%;
+}
+
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -117,17 +123,4 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-/* Prevent horizontal overflow globally */
-html, body {
-  overflow-x: hidden;
-}
-
-/* Prevent unwanted scrollbars in TableBody */
-table, thead, tbody, tr {
-  overflow: visible !important;
-}
-
-#root, .App {
-  overflow-x: hidden;
 }

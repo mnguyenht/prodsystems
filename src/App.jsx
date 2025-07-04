@@ -33,6 +33,12 @@ import {
   ChevronLast,
   ChevronLeft,
   ChevronDown,
+  Check,
+  ArrowLeftRight,
+  Info,
+  CircleX,
+  PencilLine,
+  Trash,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -69,6 +75,20 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { Separator } from "@/components/ui/separator";
 
 function TaskRow({ task, setTasks, dragOverlay = false }) {
   const {
@@ -103,7 +123,12 @@ function TaskRow({ task, setTasks, dragOverlay = false }) {
     setTasks((prev) => prev.filter((t) => t.id !== task.id));
 
   const RowContent = (
-    <TableRow ref={setNodeRef} style={style}>
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      {...(!dragOverlay && attributes)}
+      {...(!dragOverlay && listeners)}
+    >
       <TableCell className="w-[80px] truncate">
         <Checkbox
           className="size-6 cursor-pointer"
@@ -113,13 +138,10 @@ function TaskRow({ task, setTasks, dragOverlay = false }) {
         />
       </TableCell>
 
-      {/* Attach drag listeners only to this body cell */}
       <TableCell
         className={`w-[150px] truncate font-medium ${
           task.completed ? "line-through text-gray-400" : ""
         }`}
-        {...(!dragOverlay && attributes)}
-        {...(!dragOverlay && listeners)}
       >
         {task.name}
       </TableCell>
@@ -148,25 +170,29 @@ function TaskRow({ task, setTasks, dragOverlay = false }) {
 
   if (dragOverlay) return RowContent;
 
+  // ✅ Wrap RowContent in ContextMenu
   return (
-    <Dialog>
-      <DialogTrigger asChild>{RowContent}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{task.name}</DialogTitle>
-          <DialogDescription>
-            <ul className="my-4 ml-6 list-disc [&>li]:mt-2">
-              <li>{task.description}</li>
-            </ul>
-          </DialogDescription>
-          <p className="text-muted-foreground mt-4">
-            <code className="bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
-              Completion status = {task.completed.toString()}
-            </code>
-          </p>
-        </DialogHeader>
-      </DialogContent>
-    </Dialog>
+    <ContextMenu>
+      <ContextMenuTrigger asChild>{RowContent}</ContextMenuTrigger>
+      <ContextMenuContent className="p-2">
+        <ContextMenuItem>
+          <Check />
+          Check
+        </ContextMenuItem>
+        <ContextMenuItem>
+          <ArrowLeftRight />
+          Move To
+        </ContextMenuItem>
+        <ContextMenuItem>
+          <Info />
+          Info
+        </ContextMenuItem>
+        <ContextMenuItem>
+          <CircleX />
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }
 
@@ -250,7 +276,7 @@ function AddTask({ tasks, setTasks }) {
 const Home = React.forwardRef(({ tasks, setTasks }, ref) => (
   <Table
     ref={ref}
-    className="table-auto w-full max-w-7xl mx-auto px-4 overflow-visible"
+    className="table-auto w-full max-w-7xl mx-auto px-4 overflow-hidden"
   >
     <TableHeader>
       <TableRow>
@@ -260,6 +286,7 @@ const Home = React.forwardRef(({ tasks, setTasks }, ref) => (
         <TableHead className="w-[80px] text-right">Delete</TableHead>
       </TableRow>
     </TableHeader>
+
     <TableBody>
       <SortableContext
         items={tasks.map((t) => t.id)}
@@ -272,6 +299,8 @@ const Home = React.forwardRef(({ tasks, setTasks }, ref) => (
 ));
 
 function TodoList({ tasks, setTasks }) {
+  const [currentList, setCurrentList] = useState("List1");
+  const [currentSort, setCurrentSort] = useState("Id");
   const [activeId, setActiveId] = useState(null);
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -295,7 +324,7 @@ function TodoList({ tasks, setTasks }) {
 
   return (
     <>
-      <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-x-hidden bg-white">
+      <div className="flex flex-col gap-4 items-center p-4 min-h-screen w-full overflow-x-hidden bg-white">
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
           The Todo List
         </h2>
@@ -309,6 +338,53 @@ function TodoList({ tasks, setTasks }) {
           }}
           onDragCancel={() => setActiveId(null)}
         >
+          <div className="flex flex-row gap-8 w-full max-w-7xl items-center mx-auto px-4  overflow-hidden justify-between ">
+            <div className="flex flex-row gap-4 items-center">
+              <Select value={currentList} onValueChange={setCurrentList}>
+                <SelectTrigger className="w-relative hover:border-black cursor-pointer">
+                  <SelectValue
+                    placeholder={currentList}
+                    className="hover:border-b-2 border-b-transparent"
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="px-2 py-1 text-sm text-gray-500">
+                    Select a List
+                  </div>
+                  <Separator
+                    className="my-2 mx-auto"
+                    style={{ width: "90%" }}
+                  />
+                  <SelectItem value="List1">List 1</SelectItem>
+                  <SelectItem value="List2">List 2</SelectItem>
+                  <SelectItem value="List3">List 3</SelectItem>
+                </SelectContent>
+              </Select>
+              <Trash
+                className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
+                strokeWidth={1.5}
+              />
+
+              <PencilLine
+                className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
+                strokeWidth={1.5}
+              />
+            </div>
+            <Select value={currentSort} onValueChange={setCurrentSort}>
+              <SelectTrigger className="w-relative hover:border-black cursor-pointer">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <div className="px-2 py-1 text-sm text-gray-500">
+                  Sorting By:
+                </div>
+                <Separator className="my-2 mx-auto" style={{ width: "90%" }} />
+                <SelectItem value="Id">Id</SelectItem>
+                <SelectItem value="Alphabetical">Alphabetical</SelectItem>
+                <SelectItem value="Completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Home ref={tableRef} tasks={tasks} setTasks={setTasks} />
           <DragOverlay adjustScale={false}>
             {activeId && (
@@ -318,6 +394,13 @@ function TodoList({ tasks, setTasks }) {
                   tableLayout: "fixed",
                 }}
               >
+                <colgroup>
+                  {[...tableRef.current.querySelectorAll("thead th")].map(
+                    (th, idx) => (
+                      <col key={idx} style={{ width: th.offsetWidth + "px" }} />
+                    )
+                  )}
+                </colgroup>
                 <tbody>
                   <TaskRow
                     task={tasks.find((t) => t.id === activeId)}
@@ -415,7 +498,7 @@ function Timer({ seconds, minutes }) {
 function DropDown({ status, setStatus, setTicking }) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-2 rounded-md border cursor-pointer">
+      <DropdownMenuTrigger className="flex items-center gap-2 rounded-md border cursor-pointer px-2">
         <ChevronDown className="size-4" />
         <span>{status[0]}</span>
       </DropdownMenuTrigger>
@@ -463,7 +546,7 @@ function Pomodoro({
         shortBreakTime={shortBreakTime}
         setShortBreakTime={setShortBreakTime}
       />
-      <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-x-hidden bg-white ">
+      <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-y-hidden bg-white ">
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
           The Pomodoro Timer
         </h2>
@@ -646,7 +729,13 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<TodoList tasks={tasks} setTasks={setTasks} />}
+            element={
+              <TodoList
+                tasks={tasks}
+                setTasks={setTasks}
+                className="overflow-hidden"
+              />
+            }
           />
           <Route
             path="/Pomodoro"
@@ -664,6 +753,7 @@ function App() {
                 setPomodoroTime={setPomodoroTime}
                 shortBreakTime={shortBreakTime}
                 setShortBreakTime={setShortBreakTime}
+                className="overflow-hidden"
               />
             }
           />
