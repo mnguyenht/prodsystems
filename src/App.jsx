@@ -198,7 +198,6 @@ function TaskRow({ task, setTasks, dragOverlay = false }) {
   );
 }
 
-
 function AddTask({ tasks, setTasks }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -278,51 +277,61 @@ function AddTask({ tasks, setTasks }) {
   );
 }
 
-const Home = React.forwardRef(({ tasks, setTasks, search }, ref) => (
-  <Table
-    ref={ref}
-    className="table-auto w-full max-w-7xl mx-auto px-4 overflow-hidden "
-  >
-    <TableHeader>
-      <TableRow className="">
-        <TableHead className="w-[5%] relative px-4 py-2 text-left">
-          Completed
-          <Separator
-            orientation="vertical"
-            className="absolute inset-y-0 right-0"
+const Home = React.forwardRef(
+  ({ tasks, setTasks, search, currentList, currentSort }, ref) => (
+    <Table
+      ref={ref}
+      className="table-auto w-full max-w-7xl mx-auto px-4 overflow-hidden "
+    >
+      <TableHeader>
+        <TableRow className="">
+          <TableHead className="w-[5%] relative px-4 py-2 text-left">
+            Completed
+            <Separator
+              orientation="vertical"
+              className="absolute inset-y-0 right-0"
+            />
+          </TableHead>
+
+          <TableHead className="w-[25%] relative px-4 py-2 text-left">
+            Name
+            <Separator
+              orientation="vertical"
+              className="absolute inset-y-0 right-0"
+            />
+          </TableHead>
+
+          <TableHead className="w-[25%] relative px-4 py-2 text-left">
+            Description
+            <Separator
+              orientation="vertical"
+              className="absolute inset-y-0 right-0"
+            />
+          </TableHead>
+
+          <TableHead className="w-[2%] relative px-4 py-2 text-right">
+            Delete
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+
+      <TableBody>
+        <SortableContext
+          items={tasks.map((t) => t.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <Task
+            tasks={tasks}
+            setTasks={setTasks}
+            search={search}
+            currentList={currentList}
+            currentSort={currentSort}
           />
-        </TableHead>
-
-        <TableHead className="w-[25%] relative px-4 py-2 text-left">
-          Name
-          <Separator
-            orientation="vertical"
-            className="absolute inset-y-0 right-0"
-          />
-        </TableHead>
-
-        <TableHead className="w-[25%] relative px-4 py-2 text-left">
-          Description
-          <Separator
-            orientation="vertical"
-            className="absolute inset-y-0 right-0"
-          />
-        </TableHead>
-
-        <TableHead className="w-[2%] relative px-4 py-2 text-right">Delete</TableHead>
-      </TableRow>
-    </TableHeader>
-
-    <TableBody>
-      <SortableContext
-        items={tasks.map((t) => t.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <Task tasks={tasks} setTasks={setTasks} search={search} />
-      </SortableContext>
-    </TableBody>
-  </Table>
-));
+        </SortableContext>
+      </TableBody>
+    </Table>
+  )
+);
 
 function TopBar({
   currentSort,
@@ -330,7 +339,44 @@ function TopBar({
   currentList,
   setCurrentList,
   setSearch,
+  setTasks,
+  tasks,
+  listNames,
+  newListName,
+  setListNames,
+  setNewListName,
 }) {
+  const removeList = (list) => {
+    setTasks((prev) => prev.filter((t) => t.list !== list));
+    setCurrentList("All Lists");
+  };
+  const renderLists = () => {
+    return listNames.map((name) => (
+      <SelectItem key={name} value={name}>
+        {name}
+      </SelectItem>
+    ));
+  };
+
+  const renameList = () => {
+    if (!newListName.trim()) {
+      toast.error("Name cannot be empty");
+      return;
+    }
+    if (listNames.includes(newListName)) {
+      toast.error("Name already exists");
+      return;
+    }
+
+    const updatedTasks = tasks.map((t) =>
+      t.list === currentList ? { ...t, list: newListName } : t
+    );
+    setTasks(updatedTasks);
+
+    setCurrentList(newListName);
+    setNewListName("");
+  };
+
   return (
     <div className="flex relative flex-row gap-8 w-full max-w-7xl items-center mx-auto px-4 py-1  overflow-hidden justify-between ">
       <div className="flex flex-row gap-4 items-center">
@@ -350,19 +396,22 @@ function TopBar({
           <SelectContent>
             <div className="px-2 py-1 text-sm text-gray-500">Select a List</div>
             <Separator className="my-2 mx-auto" style={{ width: "90%" }} />
-            <SelectItem value="All Lists">All Lists</SelectItem>
-            <SelectItem value="List 1">List 1</SelectItem>
-            <SelectItem value="List 2">List 2</SelectItem>
+            <SelectItem key="All Lists" value="All Lists">
+              All Lists
+            </SelectItem>
+            {renderLists()}
           </SelectContent>
         </Select>
         <Dialog>
-          <DialogTrigger>
-            {" "}
-            <Trash
-              className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
-              strokeWidth={1.5}
-            />
-          </DialogTrigger>
+          {/* only render trash icon if its not all lists */}
+          {currentList === "All Lists" ? null : (
+            <DialogTrigger>
+              <Trash
+                className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
+                strokeWidth={1.5}
+              />
+            </DialogTrigger>
+          )}
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Are you absolutely sure?</DialogTitle>
@@ -382,7 +431,11 @@ function TopBar({
                   </Button>
                 </DialogClose>
                 <DialogClose asChild>
-                  <Button variant="destructive" className="cursor-pointer">
+                  <Button
+                    variant="destructive"
+                    className="cursor-pointer"
+                    onClick={() => removeList(currentList)}
+                  >
                     Delete
                   </Button>
                 </DialogClose>
@@ -392,10 +445,12 @@ function TopBar({
         </Dialog>
         <Dialog>
           <DialogTrigger>
-            <PencilLine
-              className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
-              strokeWidth={1.5}
-            />
+            {currentList === "All Lists" ? null : (
+              <PencilLine
+                className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
+                strokeWidth={1.5}
+              />
+            )}
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -406,7 +461,10 @@ function TopBar({
               autoComplete="off"
               placeholder="Awesome List 2"
               className="my-2"
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
             />
+
             <DialogFooter>
               <div className="p-0 flex flex-row justify-between w-full">
                 <DialogClose asChild>
@@ -418,7 +476,9 @@ function TopBar({
                   </Button>
                 </DialogClose>
                 <DialogClose asChild>
-                  <Button className="cursor-pointer">Update</Button>
+                  <Button className="cursor-pointer" onClick={renameList}>
+                    Update
+                  </Button>
                 </DialogClose>
               </div>
             </DialogFooter>
@@ -475,6 +535,10 @@ function TodoList({
   setCurrentList,
   search,
   setSearch,
+  listNames,
+  setListNames,
+  newListName,
+  setNewListName,
 }) {
   const [activeId, setActiveId] = useState(null);
   const sensors = useSensors(
@@ -509,7 +573,14 @@ function TodoList({
           currentList={currentList}
           setCurrentList={setCurrentList}
           setSearch={setSearch}
+          tasks={tasks}
+          setTasks={setTasks}
+          listNames={listNames}
+          setListNames={setListNames}
+          newListName={newListName}
+          setNewListName={setNewListName}
         />
+
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -525,6 +596,8 @@ function TodoList({
             tasks={tasks}
             setTasks={setTasks}
             search={search}
+            currentList={currentList}
+            currentSort={currentSort}
           />
           <DragOverlay adjustScale={false}>
             {activeId && (
@@ -780,50 +853,71 @@ function HeaderTabs() {
   );
 }
 
-function Task({ tasks, setTasks, search }) {
+function Task({ tasks, setTasks, search, currentList, currentSort }) {
   const filtered = tasks.filter((t) =>
     (t.name || "").toLowerCase().includes((search || "").toLowerCase())
   );
 
-  return filtered.map((t) => (
-    <TaskRow key={t.id} task={t} setTasks={setTasks} />
-  ));
+  function sortTasks(list) {
+    if (currentSort === "Id") {
+      return list.map((t) => (
+        <TaskRow key={t.id} task={t} setTasks={setTasks} />
+      ));
+    }
+    if (currentSort === "Alphabetical") {
+      return [...list]
+        .sort((a, b) => a.name.localeCompare(b.name)) //actual sorting
+        .map((t) => <TaskRow key={t.id} task={t} setTasks={setTasks} />);
+    }
+    if (currentSort === "Completed") {
+      return [...list]
+        .sort((a, b) => a.completed - b.completed) //actual sorting
+        .map((t) => <TaskRow key={t.id} task={t} setTasks={setTasks} />);
+    }
+  }
+
+  if (currentList === "All Lists") {
+    return sortTasks(filtered);
+  } else {
+    return sortTasks(filtered.filter((t) => t.list === currentList));
+  }
 }
 
 function App() {
   //TDL
+
   const [tasks, setTasks] = useState([
     {
       id: 1,
-      list: "List1",
+      list: "List 1",
       name: "Add dynamicness to tabs and also cursor pointer highlight",
       description: "",
       completed: false,
     },
     {
       id: 2,
-      list: "List1",
+      list: "List 1",
       name: "Make current status a dropdown menu",
       description: "turn status[0].toString() into a dropdown menu",
       completed: false,
     },
     {
       id: 3,
-      list: "List2",
+      list: "List 2",
       name: "Switching status after finishing one",
       description: "self explanatory",
       completed: false,
     },
     {
       id: 4,
-      list: "List2",
+      list: "List 2",
       name: "Arrow functionality",
       description: "switch only from pomo and short break",
       completed: false,
     },
     {
       id: 5,
-      list: "List2",
+      list: "List 2",
       name: "Settings",
       description: "settings tab that allwos people to modify status times",
       completed: false,
@@ -833,17 +927,14 @@ function App() {
   const [currentSort, setCurrentSort] = useState("Id");
   const [search, setSearch] = useState("");
 
-  // useEffect(() => {
-  //   return () => {};
-  // }, [search]);
+  const [listNames, setListNames] = useState([]);
+  const [newListName, setNewListName] = useState("");
 
-  // useEffect(() => {
-  //   if (currentSort === "Id") {
-  //     setSort(tasks.sort((a, b) => a.id - b.id));
-  //   }
-
-  //   return () => {};
-  // }, [currentSort]);
+  //Create listNames
+  useEffect(() => {
+    const unique = Array.from(new Set(tasks.map((t) => t.list)));
+    setListNames(unique);
+  }, [tasks]);
 
   //POMODORO
   const [pomodoroTime, setPomodoroTime] = useState(
@@ -916,7 +1007,10 @@ function App() {
                 setCurrentSort={setCurrentSort}
                 search={search}
                 setSearch={setSearch}
-                className="overflow-hidden"
+                listNames={listNames}
+                setListNames={setListNames}
+                newListName={newListName}
+                setNewListName={setNewListName}
               />
             }
           />
