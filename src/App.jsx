@@ -90,8 +90,15 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Separator } from "@/components/ui/separator";
+import { createContext, useContext } from "react";
+const TasksContext = React.createContext();
+const useTasks = () => React.useContext(TasksContext);
 
-function TaskRow({ task, setTasks, dragOverlay = false }) {
+function TaskRow({ task, listNames, dragOverlay = false }) {
+  const { setTasks } = useTasks();
+  const [open, setOpen] = React.useState(false);
+  const [moveOpen, setMoveOpen] = React.useState(false);
+
   const {
     attributes,
     listeners,
@@ -115,13 +122,18 @@ function TaskRow({ task, setTasks, dragOverlay = false }) {
         opacity: isDragging ? 0 : 1,
       };
 
-  const toggleComplete = (checked) =>
-    setTasks((prev) =>
-      prev.map((t) => (t.id === task.id ? { ...t, completed: checked } : t))
-    );
+  const toggleComplete = () => {
+    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t));
+  };
 
-  const removeTask = () =>
-    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+  const removeTask = () => {
+    setTasks(prev => prev.filter(t => t.id !== task.id));
+  };
+
+  const moveToList = (newList) => {
+    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, list: newList } : t));
+    setMoveOpen(false);
+  };
 
   const RowContent = (
     <TableRow
@@ -129,45 +141,30 @@ function TaskRow({ task, setTasks, dragOverlay = false }) {
       style={style}
       {...(!dragOverlay && attributes)}
       {...(!dragOverlay && listeners)}
-      className=""
+      className="px-4 py-2 w-full hover:bg-gray-100"
     >
       <TableCell className="px-4 py-2 w-[80px]">
         <Checkbox
           className="size-6 cursor-pointer"
           checked={task.completed}
           onCheckedChange={toggleComplete}
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
+          onPointerDown={e => e.stopPropagation()}
         />
       </TableCell>
-
-      <TableCell
-        className={
-          "px-4 py-2 w-[150px] font-medium break-words whitespace-normal " +
-          (task.completed ? "line-through text-gray-400" : "")
-        }
-      >
-        {task.name}
+      <TableCell className={"px-4 py-2 w-[150px] font-medium break-words whitespace-normal " + (task.completed ? "line-through text-gray-400" : "")}>        {task.name}
       </TableCell>
-
-      <TableCell
-        className={
-          "px-4 py-2 w-50 break-words whitespace-normal text-left " +
-          (task.completed ? "line-through text-gray-400" : "")
-        }
-      >
-        {task.description}
+      <TableCell className={"px-4 py-2 w-50 break-words whitespace-normal text-left " + (task.completed ? "line-through text-gray-400" : "")}>        {task.description}
       </TableCell>
-
       <TableCell className="px-4 py-2 w-[80px] text-right">
         <Button
           variant="outline"
           className="cursor-pointer"
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation();
             removeTask();
           }}
-          onPointerDown={(e) => e.stopPropagation()}
+          onPointerDown={e => e.stopPropagation()}
         >
           <X />
         </Button>
@@ -175,30 +172,76 @@ function TaskRow({ task, setTasks, dragOverlay = false }) {
     </TableRow>
   );
 
-  if (dragOverlay) return RowContent;
-
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>{RowContent}</ContextMenuTrigger>
-      <ContextMenuContent className="p-2">
-        <ContextMenuItem>
-          <Check /> Check
-        </ContextMenuItem>
-        <ContextMenuItem>
-          <ArrowLeftRight /> Move To
-        </ContextMenuItem>
-        <ContextMenuItem>
-          <Info /> Info
-        </ContextMenuItem>
-        <ContextMenuItem>
-          <CircleX /> Delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+    <>
+      <ContextMenu>
+        <ContextMenuTrigger asChild>{RowContent}</ContextMenuTrigger>
+        <ContextMenuContent className="p-2">
+          <ContextMenuItem onClick={toggleComplete} className="cursor-pointer">
+            <Check /> {task.completed ? "Uncheck" : "Check"}
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => setMoveOpen(true)} className="cursor-pointer">
+            <ArrowLeftRight /> Move To
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => setOpen(true)} className="cursor-pointer">
+            <Info /> Info
+          </ContextMenuItem>
+          <ContextMenuItem onClick={removeTask} className="cursor-pointer">
+            <CircleX /> Delete
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+
+      {open && (
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{task.name}</DialogTitle>
+              <DialogDescription>
+                <ul className="my-4 ml-6 list-disc [&>li]:mt-2">
+                  <li>{task.description}</li>
+                </ul>
+                <p className="text-muted-foreground mt-4">
+                  <code className="bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+                    Completion status = {task.completed.toString()}
+                  </code>
+                </p>
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {moveOpen && (
+        <Dialog open={moveOpen} onOpenChange={setMoveOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Move Task To:</DialogTitle>
+              <DialogDescription>
+                <Select onValueChange={moveToList}>
+                  <SelectTrigger className="w-full mt-4">
+                    <SelectValue placeholder="Select a list" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {listNames.map(name => (
+                      <SelectItem key={name} value={name}>
+                        {name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 }
 
-function AddTask({ tasks, setTasks }) {
+
+function AddTask() {
+  const { setTasks } = useTasks();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
@@ -276,61 +319,65 @@ function AddTask({ tasks, setTasks }) {
     </Dialog>
   );
 }
-
 const Home = React.forwardRef(
-  ({ tasks, setTasks, search, currentList, currentSort }, ref) => (
-    <Table
-      ref={ref}
-      className="table-auto w-full max-w-7xl mx-auto px-4 overflow-hidden "
-    >
-      <TableHeader>
-        <TableRow className="">
-          <TableHead className="w-[5%] relative px-4 py-2 text-left">
-            Completed
-            <Separator
-              orientation="vertical"
-              className="absolute inset-y-0 right-0"
-            />
-          </TableHead>
+  ({ search, currentList, currentSort, listNames }, ref) => {
+    const { tasks } = useTasks();
 
-          <TableHead className="w-[25%] relative px-4 py-2 text-left">
-            Name
-            <Separator
-              orientation="vertical"
-              className="absolute inset-y-0 right-0"
-            />
-          </TableHead>
-
-          <TableHead className="w-[25%] relative px-4 py-2 text-left">
-            Description
-            <Separator
-              orientation="vertical"
-              className="absolute inset-y-0 right-0"
-            />
-          </TableHead>
-
-          <TableHead className="w-[2%] relative px-4 py-2 text-right">
-            Delete
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-
-      <TableBody>
-        <SortableContext
-          items={tasks.map((t) => t.id)}
-          strategy={verticalListSortingStrategy}
+    return (
+      <>
+        <Table
+          ref={ref}
+          className="table-auto w-full max-w-7xl mx-auto px-4 overflow-hidden "
         >
-          <Task
-            tasks={tasks}
-            setTasks={setTasks}
-            search={search}
-            currentList={currentList}
-            currentSort={currentSort}
-          />
-        </SortableContext>
-      </TableBody>
-    </Table>
-  )
+          <TableHeader>
+            <TableRow className="">
+              <TableHead className="w-[5%] relative px-4 py-2 text-left">
+                Completed
+                <Separator
+                  orientation="vertical"
+                  className="absolute inset-y-0 right-0"
+                />
+              </TableHead>
+
+              <TableHead className="w-[25%] relative px-4 py-2 text-left">
+                Name
+                <Separator
+                  orientation="vertical"
+                  className="absolute inset-y-0 right-0"
+                />
+              </TableHead>
+
+              <TableHead className="w-[25%] relative px-4 py-2 text-left">
+                Description
+                <Separator
+                  orientation="vertical"
+                  className="absolute inset-y-0 right-0"
+                />
+              </TableHead>
+
+              <TableHead className="w-[2%] relative px-4 py-2 text-right">
+                Delete
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            <SortableContext
+              items={tasks.map((t) => t.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <Task
+                search={search}
+                currentList={currentList}
+                currentSort={currentSort}
+                listNames={listNames}
+              />
+            </SortableContext>
+          </TableBody>
+        </Table>
+      </>
+    );
+  }
 );
 
 function TopBar({
@@ -339,13 +386,13 @@ function TopBar({
   currentList,
   setCurrentList,
   setSearch,
-  setTasks,
-  tasks,
   listNames,
   newListName,
   setListNames,
   setNewListName,
 }) {
+  const { tasks, setTasks } = useTasks();
+
   const removeList = (list) => {
     setTasks((prev) => prev.filter((t) => t.list !== list));
     setCurrentList("All Lists");
@@ -527,8 +574,6 @@ function TopBar({
 }
 
 function TodoList({
-  tasks,
-  setTasks,
   currentSort,
   setCurrentSort,
   currentList,
@@ -540,6 +585,7 @@ function TodoList({
   newListName,
   setNewListName,
 }) {
+  const { setTasks, tasks } = useTasks();
   const [activeId, setActiveId] = useState(null);
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -573,8 +619,6 @@ function TodoList({
           currentList={currentList}
           setCurrentList={setCurrentList}
           setSearch={setSearch}
-          tasks={tasks}
-          setTasks={setTasks}
           listNames={listNames}
           setListNames={setListNames}
           newListName={newListName}
@@ -593,11 +637,10 @@ function TodoList({
         >
           <Home
             ref={tableRef}
-            tasks={tasks}
-            setTasks={setTasks}
             search={search}
             currentList={currentList}
             currentSort={currentSort}
+            listNames={listNames}
           />
           <DragOverlay adjustScale={false}>
             {activeId && (
@@ -617,7 +660,6 @@ function TodoList({
                 <tbody>
                   <TaskRow
                     task={tasks.find((t) => t.id === activeId)}
-                    setTasks={setTasks}
                     dragOverlay
                   />
                 </tbody>
@@ -627,12 +669,7 @@ function TodoList({
         </DndContext>
       </div>
       <div className="fixed bottom-4 right-4 z-50">
-        <AddTask
-          tasks={tasks}
-          setTasks={setTasks}
-          search={search}
-          setSearch={setSearch}
-        />
+        <AddTask search={search} setSearch={setSearch} />
       </div>
     </>
   );
@@ -853,7 +890,9 @@ function HeaderTabs() {
   );
 }
 
-function Task({ tasks, setTasks, search, currentList, currentSort }) {
+function Task({ search, currentList, currentSort, listNames }) {
+  const { tasks, setTasks } = useTasks();
+
   const filtered = tasks.filter((t) =>
     (t.name || "").toLowerCase().includes((search || "").toLowerCase())
   );
@@ -861,18 +900,18 @@ function Task({ tasks, setTasks, search, currentList, currentSort }) {
   function sortTasks(list) {
     if (currentSort === "Id") {
       return list.map((t) => (
-        <TaskRow key={t.id} task={t} setTasks={setTasks} />
+        <TaskRow key={t.id} task={t} listNames={listNames} />
       ));
     }
     if (currentSort === "Alphabetical") {
       return [...list]
         .sort((a, b) => a.name.localeCompare(b.name)) //actual sorting
-        .map((t) => <TaskRow key={t.id} task={t} setTasks={setTasks} />);
+        .map((t) => <TaskRow key={t.id} task={t} listNames={listNames} />);
     }
     if (currentSort === "Completed") {
       return [...list]
         .sort((a, b) => a.completed - b.completed) //actual sorting
-        .map((t) => <TaskRow key={t.id} task={t} setTasks={setTasks} />);
+        .map((t) => <TaskRow key={t.id} task={t} listNames={listNames} />);
     }
   }
 
@@ -885,7 +924,6 @@ function Task({ tasks, setTasks, search, currentList, currentSort }) {
 
 function App() {
   //TDL
-
   const [tasks, setTasks] = useState([
     {
       id: 1,
@@ -903,7 +941,7 @@ function App() {
     },
     {
       id: 3,
-      list: "List 2",
+      list: "List 1",
       name: "Switching status after finishing one",
       description: "self explanatory",
       completed: false,
@@ -998,22 +1036,23 @@ function App() {
           <Route
             path="/"
             element={
-              <TodoList
-                tasks={tasks}
-                setTasks={setTasks}
-                currentList={currentList}
-                setCurrentList={setCurrentList}
-                currentSort={currentSort}
-                setCurrentSort={setCurrentSort}
-                search={search}
-                setSearch={setSearch}
-                listNames={listNames}
-                setListNames={setListNames}
-                newListName={newListName}
-                setNewListName={setNewListName}
-              />
+              <TasksContext.Provider value={{ tasks, setTasks }}>
+                <TodoList
+                  currentList={currentList}
+                  setCurrentList={setCurrentList}
+                  currentSort={currentSort}
+                  setCurrentSort={setCurrentSort}
+                  search={search}
+                  setSearch={setSearch}
+                  listNames={listNames}
+                  setListNames={setListNames}
+                  newListName={newListName}
+                  setNewListName={setNewListName}
+                />
+              </TasksContext.Provider>
             }
           />
+
           <Route
             path="/Pomodoro"
             element={
