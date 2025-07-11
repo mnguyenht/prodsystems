@@ -22,18 +22,30 @@ import "../../App.css";
 import { useTasks } from "@/context";
 import React from "react";
 
-function AddTask() {
+function AddTask({currentList, listNames}) {
   const { setTasks } = useTasks();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const addTask = () => {
-    if (!name.trim()) return;
-    const newTask = { id: Date.now(), name, description, completed: false };
-    setTasks((prev) => [...prev, newTask]);
-    setName("");
-    setDescription("");
+const addTask = () => {
+  if (!name.trim()) return;
+
+  const listToUse =
+    currentList === "All Lists" ? listNames[0] : currentList;
+
+  const newTask = {
+    id: Date.now(),
+    list: listToUse,
+    name,
+    description,
+    completed: false,
   };
+
+  setTasks((prev) => [...prev, newTask]);
+  setName("");
+  setDescription("");
+};
+
 
   return (
     <Dialog>

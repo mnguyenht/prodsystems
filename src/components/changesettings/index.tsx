@@ -22,7 +22,7 @@ import {
 import "../../App.css";
 import React from "react";
 
-
+import { toast } from "sonner"; 
 
 function ChangeSettings({
   pomodoroTime,
@@ -31,9 +31,16 @@ function ChangeSettings({
   setShortBreakTime,
 }) {
   const handleSave = () => {
-    localStorage.setItem("pomodoroTime", pomodoroTime);
-    localStorage.setItem("shortBreakTime", shortBreakTime);
+    try {
+      localStorage.setItem("pomodoroTime", pomodoroTime.toString());
+      localStorage.setItem("shortBreakTime", shortBreakTime.toString());
+      toast.success("Settings saved successfully! Changes will appear on next switch.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save settings.");
+    }
   };
+
   return (
     <Dialog>
       <DialogTrigger asChild>

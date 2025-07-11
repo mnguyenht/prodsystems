@@ -1,48 +1,137 @@
 import "./App.css";
 import TasksContext from "./context/index";
 import BrowerRouter from "./router/index";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+import TimerContext from "./context/pomoindex";
+
 const App = () => {
   const [tasks, setTasks] = useState([
     {
       id: 1,
       list: "List 1",
-      name: "Add dynamicness to tabs and also cursor pointer highlight",
-      description: "",
+      name: "Pomodoro now runs even when not in page",
+      description: "Pomodoro continues to run even when you're on another page",
       completed: false,
     },
     {
       id: 2,
       list: "List 1",
-      name: "Make current status a dropdown menu",
-      description: "turn status[0].toString() into a dropdown menu",
+      name: "Fixed first time intialization resulting in 0 pomodoro time",
+      description: "Without previous localstorage data, the pomodoro timer would start at 0, and or result in NaN aswell",
       completed: false,
     },
     {
       id: 3,
       list: "List 1",
-      name: "Switching status after finishing one",
-      description: "self explanatory",
+      name: "Fixed creating tasks without assigning lists",
+      description: "Now creating a task will add it to whatever list you're in, or the first list if not in a list",
       completed: false,
     },
     {
       id: 4,
       list: "List 2",
-      name: "Arrow functionality",
-      description: "switch only from pomo and short break",
+      name: "Extra: Moved all pomo states into a context",
+      description: "",
       completed: false,
-    },
-    {
-      id: 5,
-      list: "List 2",
-      name: "Settings",
-      description: "settings tab that allwos people to modify status times",
-      completed: false,
-    },
+    }
   ]);
+
+  const [minutes, setMinutes] = useState(0);
+  const [seconds, setSeconds] = useState(0);
+  const [ticking, setTicking] = useState(false);
+  const [status, setStatus] = useState(["Pomodoro", "Short Break"]);
+
+  const [pomodoroTime, setPomodoroTime] = useState(() =>
+    parseInt(localStorage.getItem("pomodoroTime") || "25")
+  );
+  const [shortBreakTime, setShortBreakTime] = useState(() =>
+    parseInt(localStorage.getItem("shortBreakTime") || "5")
+  );
+
+  //First ever init
+  useEffect(() => {
+  const hasVisited = localStorage.getItem("hasVisited");
+
+  if (!hasVisited) {
+    console.log("Welcome new user!");
+
+    setPomodoroTime(25);
+    setShortBreakTime(5);
+
+    localStorage.setItem("pomodoroTime", "25");
+    localStorage.setItem("shortBreakTime", "5");
+    localStorage.setItem("hasVisited", "true");
+  } else {
+    // Returning user — load from storage if you like
+    const savedPomo = parseInt(localStorage.getItem("pomodoroTime") || "25");
+    const savedBreak = parseInt(localStorage.getItem("shortBreakTime") || "5");
+    setPomodoroTime(savedPomo);
+    setShortBreakTime(savedBreak);
+  }
+}, []);
+
+
+  // initialize
+  useEffect(() => {
+    if (status[0] === "Pomodoro") {
+      setMinutes(pomodoroTime);
+      setSeconds(0);
+    } else {
+      setMinutes(shortBreakTime);
+      setSeconds(0);
+    }
+    setTicking(false);
+  }, []);
+
+
+  useEffect(() => {
+    if (!ticking) return;
+
+    const interval = setInterval(() => {
+      //Tick down seconds
+      setSeconds((prevSeconds) => {
+        if (minutes === 0 && seconds === 0) {
+          const reordered = [status[1], status[0]];
+          setStatus(reordered);
+          return 0;
+        }
+
+        if (prevSeconds === 0) {
+          return 59;
+        } else {
+          return prevSeconds - 1;
+        }
+      });
+      //Timer finished congats amazing also seconds == 1 because lifecycle reasons
+      setMinutes((prevMinutes) => {
+        return seconds === 0 && minutes !== 0 ? prevMinutes - 1 : prevMinutes;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [ticking, seconds]);
+
   return (
     <TasksContext.Provider value={{ tasks, setTasks }}>
-      <BrowerRouter />
+      <TimerContext.Provider
+        value={{
+          minutes,
+          setMinutes,
+          seconds,
+          setSeconds,
+          ticking,
+          setTicking,
+          status,
+          setStatus,
+          setPomodoroTime,
+          setShortBreakTime,
+          pomodoroTime,
+          shortBreakTime,
+        }}
+      >
+        <BrowerRouter />
+      </TimerContext.Provider>
     </TasksContext.Provider>
   );
 };

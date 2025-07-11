@@ -26,9 +26,6 @@ import React from "react";
 
 
 
-// Remember to make it so if tasks overflow vertically onyl THEN add a side scrollbar
-
-
 
 
 function TodoListComponent() {
@@ -37,7 +34,7 @@ function TodoListComponent() {
   const [currentList, setCurrentList] = useState("All Lists");
   const [currentSort, setCurrentSort] = useState("Id");
   const [search, setSearch] = useState("");
-  const [listNames, setListNames] = useState(["Default List"]);
+  const [listNames, setListNames] = useState([""]);
   const [newListName, setNewListName] = useState("");
 
   const tableRef = useRef(null);
@@ -63,10 +60,11 @@ function TodoListComponent() {
     const unique = Array.from(new Set(tasks.map((t) => t.list)));
     setListNames(unique);
   }, [tasks]);
+  
 
   return (
     <TasksContext.Provider value={{ tasks, setTasks }}>
-      <div className="flex flex-col gap-4 items-center p-4 min-h-screen w-full overflow-x-hidden bg-white">
+      <div className="flex flex-col gap-4 items-center p-4 min-h-screen w-full overflow-x-hidden overflow-y-auto bg-white">
         <h2 className="text-3xl font-semibold tracking-tight">The Todo List</h2>
 
         <TopBar
@@ -128,7 +126,7 @@ function TodoListComponent() {
       </div>
 
       <div className="fixed bottom-4 right-4 z-50">
-        <AddTask />
+        <AddTask currentList={currentList} listNames={listNames} />
       </div>
     </TasksContext.Provider>
   );
