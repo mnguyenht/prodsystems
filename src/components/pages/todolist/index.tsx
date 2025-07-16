@@ -64,8 +64,8 @@ function TodoListComponent() {
 
   return (
     <TasksContext.Provider value={{ tasks, setTasks }}>
-      <div className="flex flex-col gap-4 items-center p-4 min-h-screen w-full overflow-x-hidden overflow-y-auto bg-white">
-        <h2 className="text-3xl font-semibold tracking-tight">The Todo List</h2>
+    <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-y-hidden bg-white">
+      <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">The Todo List </h2>
 
         <TopBar
           currentSort={currentSort}
@@ -125,7 +125,7 @@ function TodoListComponent() {
         </DndContext>
       </div>
 
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed bottom-8 right-8 z-50">
         <AddTask currentList={currentList} listNames={listNames} />
       </div>
     </TasksContext.Provider>

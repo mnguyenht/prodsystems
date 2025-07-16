@@ -4,8 +4,31 @@ import BrowerRouter from "./router/index";
 import { useState, useEffect } from "react";
 
 import TimerContext from "./context/pomoindex";
+import TermsContext from "./context/flashcardsindex";
 
 const App = () => {
+  const [terms, setTerms] = useState([
+    {
+      id: 1,
+      name: "Torque def",
+      description: "a force's ability to cause rotation",
+    },
+    {
+      id: 2,
+      name: "What is buoyant force",
+      description:
+        "If we think about gauge pressure, the lower we are the more pressure there is. So the pressure pushing the bottom surfaces (which is facing up) is going to be higher than the pressure from the top surfaces (which is facing down). So the net UP force of that is the buoyant force, that's overall pushing the object up. And it will keep pushing the obj up until the bottom pressure cannot withstand the top pressure + weight of the object.",
+    },
+    {
+      id: 3,
+      name: "Find total electrons in _ orbital",
+      description:
+        "find what block the element is on the periodic table, then count all the elements that atom went through inside that block",
+    },
+  ]);
+
+  const [currentTerm, setCurrentTerm] = useState(0);
+
   const [tasks, setTasks] = useState([
     {
       id: 1,
@@ -18,14 +41,16 @@ const App = () => {
       id: 2,
       list: "List 1",
       name: "Fixed first time intialization resulting in 0 pomodoro time",
-      description: "Without previous localstorage data, the pomodoro timer would start at 0, and or result in NaN aswell",
+      description:
+        "Without previous localstorage data, the pomodoro timer would start at 0, and or result in NaN aswell",
       completed: false,
     },
     {
       id: 3,
       list: "List 1",
       name: "Fixed creating tasks without assigning lists",
-      description: "Now creating a task will add it to whatever list you're in, or the first list if not in a list",
+      description:
+        "Now creating a task will add it to whatever list you're in, or the first list if not in a list",
       completed: false,
     },
     {
@@ -34,7 +59,7 @@ const App = () => {
       name: "Extra: Moved all pomo states into a context",
       description: "",
       completed: false,
-    }
+    },
   ]);
 
   const [minutes, setMinutes] = useState(0);
@@ -51,26 +76,27 @@ const App = () => {
 
   //First ever init
   useEffect(() => {
-  const hasVisited = localStorage.getItem("hasVisited");
+    const hasVisited = localStorage.getItem("hasVisited");
 
-  if (!hasVisited) {
-    console.log("Welcome new user!");
+    if (!hasVisited) {
+      console.log("Welcome new user!");
 
-    setPomodoroTime(25);
-    setShortBreakTime(5);
+      setPomodoroTime(25);
+      setShortBreakTime(5);
 
-    localStorage.setItem("pomodoroTime", "25");
-    localStorage.setItem("shortBreakTime", "5");
-    localStorage.setItem("hasVisited", "true");
-  } else {
-    // Returning user — load from storage if you like
-    const savedPomo = parseInt(localStorage.getItem("pomodoroTime") || "25");
-    const savedBreak = parseInt(localStorage.getItem("shortBreakTime") || "5");
-    setPomodoroTime(savedPomo);
-    setShortBreakTime(savedBreak);
-  }
-}, []);
-
+      localStorage.setItem("pomodoroTime", "25");
+      localStorage.setItem("shortBreakTime", "5");
+      localStorage.setItem("hasVisited", "true");
+    } else {
+      // Returning user — load from storage if you like
+      const savedPomo = parseInt(localStorage.getItem("pomodoroTime") || "25");
+      const savedBreak = parseInt(
+        localStorage.getItem("shortBreakTime") || "5"
+      );
+      setPomodoroTime(savedPomo);
+      setShortBreakTime(savedBreak);
+    }
+  }, []);
 
   // initialize
   useEffect(() => {
@@ -83,7 +109,6 @@ const App = () => {
     }
     setTicking(false);
   }, []);
-
 
   useEffect(() => {
     if (!ticking) return;
@@ -130,7 +155,9 @@ const App = () => {
           shortBreakTime,
         }}
       >
-        <BrowerRouter />
+        <TermsContext.Provider value={{ terms, setTerms }}>
+          <BrowerRouter />
+        </TermsContext.Provider>
       </TimerContext.Provider>
     </TasksContext.Provider>
   );

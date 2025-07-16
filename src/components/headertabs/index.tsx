@@ -14,6 +14,7 @@ function HeaderTabs() {
   const pathToTab = {
     "/": "todolist",
     "/Pomodoro": "pomodoro",
+        "/Flashcards": "flashcards",
   };
 
   const currentTab = pathToTab[location.pathname] || "todolist";
@@ -30,6 +31,11 @@ function HeaderTabs() {
           <Link to="/Pomodoro">
             <TabsTrigger value="pomodoro" className="cursor-pointer">
               Pomodoro
+            </TabsTrigger>
+          </Link>
+          <Link to="/Flashcards">
+            <TabsTrigger value="flashcards" className="cursor-pointer">
+              Flashcards
             </TabsTrigger>
           </Link>
         </TabsList>
