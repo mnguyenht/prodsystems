@@ -6,6 +6,11 @@ html, body {
   height: 100%;
 }
 
+.card {
+  user-select: none;
+}
+
+
 
 @custom-variant dark (&:is(.dark *));
 
@@ -124,3 +129,14 @@ html, body {
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes slideRight {
+  0%   { transform: translateX(0);}
+  100% { transform: translateX(100%); opacity: 0;}
+}
+
+
+.animate {
+  animation: slideRight 1s cubic-bezier(0.075, 0.82, 0.165, 1) forwards;
+}
+

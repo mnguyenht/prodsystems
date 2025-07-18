@@ -2,18 +2,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
-    Plus,
+  Plus,
 } from "lucide-react";
 
 
@@ -27,19 +27,23 @@ function AddTerm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-const addTerm = () => {
-  if (!name.trim()) return;
+  const addTerm = () => {
+    if (!name.trim()) return;
 
-  const newTerm = {
-    id: Date.now(),
-    name,
-    description,
+    setTerms((prev) => {
+      const newTerm = {
+        id: Date.now(),
+   order: prev.length + 1,  
+        term: name,
+        def: description,
+      };
+      return [...prev, newTerm];
+    });
+
+    setName("");
+    setDescription("");
   };
 
-  setTerms((prev) => [...prev, newTerm]);
-  setName("");
-  setDescription("");
-};
 
 
   return (

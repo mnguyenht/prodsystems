@@ -50,17 +50,18 @@ function TermRow({ term, dragOverlay = false }) {
 
   const style = dragOverlay
     ? {
-        boxShadow: "0 8px 24px rgba(0,0,0,.25)",
-        backgroundColor: "#fff",
-        borderRadius: "0.5rem",
-        cursor: "grabbing",
-        display: "table-row",
-      }
+      boxShadow: "0 8px 24px rgba(0,0,0,.25)",
+      backgroundColor: "#fff",
+      borderRadius: "0.5rem",
+      cursor: "grabbing",
+      display: "table-row",
+    }
     : {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0 : 1,
-      };
+      transform: transform ? CSS.Transform.toString(transform) : undefined,
+      transition,
+      opacity: isDragging ? 0 : 1,
+    };
+
 
   const toggleComplete = () => {
     setTerms((prev) =>
@@ -82,6 +83,7 @@ function TermRow({ term, dragOverlay = false }) {
   };
 
   const RowContent = (
+    <>
     <TableRow
       ref={setNodeRef}
       style={style}
@@ -90,7 +92,7 @@ function TermRow({ term, dragOverlay = false }) {
       className="hover:bg-gray-100"
     >
 
-   <TableCell
+      <TableCell
         className="
       px-4 py-2 
 
@@ -99,7 +101,7 @@ function TermRow({ term, dragOverlay = false }) {
       whitespace-normal 
     "
       >
-        {term.id}
+        {term.order}
       </TableCell>
 
       <TableCell
@@ -111,10 +113,10 @@ function TermRow({ term, dragOverlay = false }) {
       whitespace-normal 
     "
       >
-        {term.name}
+        {term.term}
       </TableCell>
 
-   
+
       <TableCell
         className="
       px-4 py-2 
@@ -125,7 +127,7 @@ function TermRow({ term, dragOverlay = false }) {
 
     "
       >
-        {term.description}
+        {term.def}
       </TableCell>
 
 
@@ -149,7 +151,9 @@ function TermRow({ term, dragOverlay = false }) {
         </Button>
       </TableCell>
     </TableRow>
+    </>
   );
+  
 
   return (
     <>
