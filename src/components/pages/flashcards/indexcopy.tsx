@@ -43,13 +43,7 @@ import {
 
 //Reorder on delete !
 //More UX changes !
-//flip and slide animations !
-
-
-
-//if def is too long it will break the card
-
-
+//flip and slide animations
 //arrow keys + space to activate buttons
 //migrate data to local storage
 
@@ -121,76 +115,50 @@ function FlashCardComponent() {
   console.log(terms);
 
   return (
-    <div className="flex flex-col gap-6 items-center p-4 min-h-screen w-full bg-white">
+    <div className="flex flex-col gap-12 items-center p-4 min-h-screen w-full bg-white">
       <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 ">
         The Flashcards
       </h2>
 
-      <div className="flex flex-col">
-        {/* OUTER: slide animation + reset on end */}
+      <div className="flex flex-col gap-2">
         <div
-          className="overflow-x-hidden"
+          className="flex flex-col w-200 h-100 overflow-x-hidden font-manrope rounded-md border-4 border-black text-center justify-center items-center cursor-pointer
+          perspective-normal"
           style={{
             userSelect: "none",
-            animation: animateRight
+            animation: flip
+              ? "flip 0.25s ease"
+              : animateRight
               ? "slideRight 0.25s ease"
               : animateLeft
-                ? "slideLeft 0.25s ease"
-                : "none",
-                
+              ? "slideLeft 0.25s ease"
+              : "none",
+          }}
+          onClick={() => {
+            setFlip(true);
+            setTimeout(() => {
+              setCardStatus((prev) => (prev === "term" ? "def" : "term"));
+            }, 125);
           }}
           onAnimationEnd={() => {
             setAnimateRight(false);
             setAnimateLeft(false);
+            setFlip(false);
           }}
         >
-
-          <div
-            className="flex flex-col w-220 h-110 p-15  rounded-md   text-center justify-center items-center cursor-pointer"
-            style={{ perspective: "1000px" }}
-            onClick={() => {
-              setFlip(f => !f);
-              setTimeout(
-                () => setCardStatus(s => (s === "term" ? "def" : "term")),
-                125
-              );
-            }}
-          >
-
-            <div
-              className="relative w-full h-full transition-transform duration-250 ease-in-out"
-              style={{
-                transformStyle: "preserve-3d",
-                transform: flip ? "rotateX(180deg)" : "rotateX(0deg)",
-              }}
+          <div>
+            <h3
+              className={`scroll-m-20 tracking-tight p-20 font-semibold text-3xl`}
             >
-      
-              <div
-                className="absolute inset-0 flex items-center justify-center font-manrope border-4 border-black rounded-md"
-                style={{ backfaceVisibility: "hidden" }}
-              >
-                <h3 className="text-3xl font-semibold">
-                  {currentTerm.term}
-                </h3>
-              </div>
-
-              <div
-                className="absolute inset-0 flex items-center justify-center font-manrope border-4 border-black rounded-md"
-                style={{
-                  backfaceVisibility: "hidden",
-                  transform: "rotateX(180deg)",
-                }}
-              >
-                <h3 className="text-2xl font-normal">
-                  {currentTerm.def}
-                </h3>
-              </div>
-            </div>
+              {currentTerm.term}
+            </h3>
+            <h3
+              className={`scroll-m-20 tracking-tight p-20 font-normal  text-2xl`}
+            >
+              {currentTerm.def}
+            </h3>
           </div>
         </div>
-
-
-
 
         <div className="flex flex-row gap-8 items-center justify-center">
           <div
