@@ -22,10 +22,12 @@ import "../../App.css";
 import { useTerms } from "../../context/flashcardsindex";
 import React from "react";
 
-function AddTerm() {
+function AddTerm({ open, setOpen }) {
   const { setTerms } = useTerms();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+ 
+
 
   const addTerm = () => {
     if (!name.trim()) return;
@@ -33,7 +35,7 @@ function AddTerm() {
     setTerms((prev) => {
       const newTerm = {
         id: Date.now(),
-   order: prev.length + 1,  
+        order: prev.length + 1,
         term: name,
         def: description,
       };
@@ -43,11 +45,17 @@ function AddTerm() {
     setName("");
     setDescription("");
   };
+if (open) {
+  console.log("Still in the menu!");
+} if (!open) {
+  console.log("Not in the menu!");
+}
 
 
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
+
       <DialogTrigger asChild>
         <Button
           variant="outline"

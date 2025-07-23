@@ -45,13 +45,10 @@ import {
 //More UX changes !
 //flip and slide animations !
 
-
 //migrate data to local storage !
 //arrow keys + space to activate buttons !
 //if text is too long it will break the card
 //Right click breaks side bar
-
-
 
 function FlashCardComponent() {
   const { terms, setTerms } = useTerms();
@@ -61,7 +58,7 @@ function FlashCardComponent() {
   const [animateRight, setAnimateRight] = useState(false);
   const [animateLeft, setAnimateLeft] = useState(false);
   const [flip, setFlip] = useState(false);
-
+  const [open, setOpen] = useState(false);
 
   //Directions are inverted here to simulate the card direction coming in, making it look more natural
   const handleAnimate = (direction) => {
@@ -89,7 +86,6 @@ function FlashCardComponent() {
       },
     })
   );
-
 
   //reordering
   const activeTerm = terms.find((t) => t.id === activeId);
@@ -122,27 +118,26 @@ function FlashCardComponent() {
       },
     ];
     if (!Array.isArray(terms) || terms.length === 0) {
-
       localStorage.setItem("terms", JSON.stringify(placeholder));
       localStorage.setItem("hasVisited", "true");
-      setTerms(placeholder);           // 👈 reset terms state
+      setTerms(placeholder); // 👈 reset terms state
       setCurrentTerm(placeholder[0]); // 👈 reset currentTerm
     } else {
       localStorage.setItem("terms", JSON.stringify(terms));
     }
   }, [terms]);
 
-
-  //Keeps localstorage updated  
+  //Keeps localstorage updated
   useEffect(() => {
     localStorage.setItem("terms", JSON.stringify(terms));
-  }, [terms])
-
+  }, [terms]);
 
   //space to flip
   useEffect(() => {
     const handleSpace = (e) => {
-      if (e.code === "Space") { // check if e (event object).code is space
+      if (open) return;
+      if (e.code === "Space") {
+        // check if e (event object).code is space
         e.preventDefault(); // stop page scroll
         setFlip((prev) => !prev); // toggle flip
       }
@@ -153,7 +148,7 @@ function FlashCardComponent() {
     return () => {
       window.removeEventListener("keydown", handleSpace); //Clean up
     };
-  }, []);
+  }, [open]);
 
   //left right presses
   const handleLeft = () => {
@@ -186,22 +181,24 @@ function FlashCardComponent() {
 
   //Left right keypress handler
   useEffect(() => {
-  const handleKeyDown = (e) => {
-    if (e.code === "ArrowLeft") {
-      handleLeft();
-    } else if (e.code === "ArrowRight") {
-      handleRight();
-    }
-  };
 
-  window.addEventListener("keydown", handleKeyDown);
+    const handleKeyDown = (e) => {
+      if (open) return;
+      if (e.code === "ArrowLeft") {
+        handleLeft();
+      } else if (e.code === "ArrowRight") {
+        handleRight();
+      }
+    };
 
-  return () => {
-    window.removeEventListener("keydown", handleKeyDown);
-  };
-}, [currentTerm, terms]); // include deps if needed
+    window.addEventListener("keydown", handleKeyDown);
 
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [currentTerm, terms, open]); 
 
+  
   return (
     <div className="flex flex-col gap-4 items-center p-4 min-h-screen w-full bg-white overflow-y-visible">
       <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 overflow-y-visible">
@@ -219,22 +216,19 @@ function FlashCardComponent() {
               : animateLeft
                 ? "slideLeft 0.25s ease"
                 : "none",
-
           }}
           onAnimationEnd={() => {
             setAnimateRight(false);
             setAnimateLeft(false);
           }}
         >
-
           <div
             className="flex flex-col w-220 h-110 p-15  rounded-md   text-center justify-center items-center cursor-pointer"
             style={{ perspective: "1000px" }}
             onClick={() => {
-              setFlip(f => !f);
+              setFlip((f) => !f);
             }}
           >
-
             <div
               className="relative w-full h-full transition-transform duration-250 ease-in-out"
               style={{
@@ -242,7 +236,6 @@ function FlashCardComponent() {
                 transform: flip ? "rotateX(180deg)" : "rotateX(0deg)",
               }}
             >
-
               <div
                 className="absolute inset-0 flex items-center justify-center font-manrope border-4 border-black rounded-md"
                 style={{ backfaceVisibility: "hidden" }}
@@ -283,24 +276,18 @@ function FlashCardComponent() {
                   }}
                 >
                   <div>
-                    <h3 className="text-2xl font-normal">
-                      {currentTerm.def}
-                    </h3>
+                    <h3 className="text-2xl font-normal">{currentTerm.def}</h3>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
 
-
-
-
         <div className="flex flex-row gap-8 items-center justify-center translate-y-[-20px]">
           <div
             className="flex p-4 cursor-pointer hover:scale-110 transition-all active:scale-90  duration-150 ease-out"
-             onClick={handleLeft}
+            onClick={handleLeft}
           >
             <ArrowLeft
               size={50}
@@ -378,13 +365,12 @@ function FlashCardComponent() {
             )}
           </DragOverlay>
         </DndContext>
-
       </Table>
 
       <div className="fixed bottom-8 right-8 z-50">
-        <AddTerm />
+        <AddTerm open={open} setOpen={setOpen} />
       </div>
-    </div >
+    </div>
   );
 }
 
