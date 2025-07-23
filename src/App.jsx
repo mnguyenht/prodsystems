@@ -15,7 +15,7 @@ const App = () => {
       def: "Use the + button on the bottom right corner",
     },
   ];
-
+  //Sets the state 
   const [terms, setTerms] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem("terms"));
@@ -29,36 +29,21 @@ const App = () => {
 
 
   const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      list: "List 1",
-      name: "Pomodoro now runs even when not in page",
-      description: "Pomodoro continues to run even when you're on another page",
-      completed: false,
-    },
-    {
-      id: 2,
-      list: "List 1",
-      name: "Fixed first time intialization resulting in 0 pomodoro time",
-      description:
-        "Without previous localstorage data, the pomodoro timer would start at 0, and or result in NaN aswell",
-      completed: false,
-    },
-    {
-      id: 3,
-      list: "List 1",
-      name: "Fixed creating tasks without assigning lists",
-      description:
-        "Now creating a task will add it to whatever list you're in, or the first list if not in a list",
-      completed: false,
-    },
-    {
-      id: 4,
-      list: "List 2",
-      name: "Extra: Moved all pomo states into a context",
-      description: "",
-      completed: false,
-    },
+   {
+  id: 1,
+  list: "List 1",
+  name: "Fix long text breaking the card",
+  description: "Ensure text wraps or truncates so the card layout stays intact",
+  completed: false,
+},
+{
+  id: 2,
+  list: "List 1",
+  name: "Right‑click no longer closes sidebar",
+  description: "Filter out right‑clicks from outside‑click logic to keep sidebar open",
+  completed: false,
+},
+
   ]);
 
   const [minutes, setMinutes] = useState(0);
