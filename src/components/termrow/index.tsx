@@ -98,6 +98,7 @@ function TermRow({ term, dragOverlay = false }) {
 
   return (
     <>
+
       <ContextMenu>
         <ContextMenuTrigger asChild>{RowContent}</ContextMenuTrigger>
         <ContextMenuContent className="p-2">
@@ -126,6 +127,7 @@ function TermRow({ term, dragOverlay = false }) {
           </DialogContent>
         </Dialog>
       )}
+
     </>
   );
 }

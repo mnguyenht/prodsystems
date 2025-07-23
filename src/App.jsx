@@ -7,45 +7,24 @@ import TimerContext from "./context/pomoindex";
 import TermsContext from "./context/flashcardsindex";
 
 const App = () => {
-  const [terms, setTerms] = useState([
+  const placeholder = [
     {
       id: 1,
       order: 1,
-      term: "Torque def",
-      def: "a force's ability to cause rotation",
+      term: "Add a card to get started",
+      def: "Use the + button on the bottom right corner",
     },
-    {
-      id: 2,
-      order: 2,
-      term: "What is buoyant force",
-      def:
-        "If we think about gauge pressure, the lower we are the more pressure there is. So the pressure pushing the bottom surfaces (which is facing up) is going to be higher than the pressure from the top surfaces (which is facing down). So the net UP force of that is the buoyant force, that's overall pushing the object up. And it will keep pushing the obj up until the bottom pressure cannot withstand the top pressure + weight of the object.",
-    },
-    {
-      id: 3,
-      order: 3,
-      term: "Find total electrons in _ orbital",
-      def:
-        "find what block the element is on the periodic table, then count all the elements that atom went through inside that block",
-    },
-        {
-      id: 4,
-      order: 4,
-      term: "Intermolecular Forces(IMF)",
-      def:
-        "the attraction between 2 molecules",
-    },
-    
-        {
-      id: 5,
-      order: 5,
-      term: "Categorical vs Block Grant",
-      def:
-        "Categorical Grants: States/Local grants for a specific purpose. Block Grants: same thing but States/Local areas get more flexibility",
-    },
-    
+  ];
 
-  ]);
+  const [terms, setTerms] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("terms"));
+      if (Array.isArray(stored) && stored.length > 0) {
+        return stored;
+      }
+    } catch {}
+    return placeholder;
+  });
 
 
 

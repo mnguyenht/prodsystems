@@ -46,7 +46,7 @@ import {
 //flip and slide animations
 //arrow keys + space to activate buttons
 //migrate data to local storage
-
+//No info breaks the card
 function FlashCardComponent() {
   const { terms, setTerms } = useTerms();
   const [activeId, setActiveId] = useState(null);

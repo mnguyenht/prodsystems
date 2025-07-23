@@ -46,22 +46,22 @@ import {
 //flip and slide animations !
 
 
+//migrate data to local storage !
+//arrow keys + space to activate buttons !
+//if text is too long it will break the card
+//Right click breaks side bar
 
-//if def is too long it will break the card
 
-
-//arrow keys + space to activate buttons
-//migrate data to local storage
 
 function FlashCardComponent() {
   const { terms, setTerms } = useTerms();
   const [activeId, setActiveId] = useState(null);
   const [currentTerm, setCurrentTerm] = useState(terms[0]);
-  const [cardStatus, setCardStatus] = useState("term");
+
   const [animateRight, setAnimateRight] = useState(false);
   const [animateLeft, setAnimateLeft] = useState(false);
   const [flip, setFlip] = useState(false);
-  const [toInvert, setToInvert] = useState(false);
+
 
   //Directions are inverted here to simulate the card direction coming in, making it look more natural
   const handleAnimate = (direction) => {
@@ -90,8 +90,9 @@ function FlashCardComponent() {
     })
   );
 
-  const activeTerm = terms.find((t) => t.id === activeId);
 
+  //reordering
+  const activeTerm = terms.find((t) => t.id === activeId);
   const handleDragEnd = ({ active, over }) => {
     setActiveId(null);
     if (!over || active.id === over.id) return;
@@ -102,27 +103,108 @@ function FlashCardComponent() {
       const updated = [...prev];
       const [moved] = updated.splice(oldIndex, 1);
       updated.splice(newIndex, 0, moved);
-
-      // recompute order
       return updated.map((t, idx) => ({ ...t, order: idx + 1 }));
     });
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      setToInvert(!toInvert);
-    }, 125); // for a 250ms animation, halfway = 125ms
-  }, [flip]);
-
-  useEffect(() => {
     setCurrentTerm(terms[0]);
   }, [terms]);
 
-  console.log(terms);
+  //Detect if no terms
+  useEffect(() => {
+    const placeholder = [
+      {
+        id: 1,
+        order: 1,
+        term: "Add a card to get started",
+        def: "Use the + button on the bottom right corner",
+      },
+    ];
+    if (!Array.isArray(terms) || terms.length === 0) {
+
+      localStorage.setItem("terms", JSON.stringify(placeholder));
+      localStorage.setItem("hasVisited", "true");
+      setTerms(placeholder);           // 👈 reset terms state
+      setCurrentTerm(placeholder[0]); // 👈 reset currentTerm
+    } else {
+      localStorage.setItem("terms", JSON.stringify(terms));
+    }
+  }, [terms]);
+
+
+  //Keeps localstorage updated  
+  useEffect(() => {
+    localStorage.setItem("terms", JSON.stringify(terms));
+  }, [terms])
+
+
+  //space to flip
+  useEffect(() => {
+    const handleSpace = (e) => {
+      if (e.code === "Space") { // check if e (event object).code is space
+        e.preventDefault(); // stop page scroll
+        setFlip((prev) => !prev); // toggle flip
+      }
+    };
+
+    window.addEventListener("keydown", handleSpace); //Listens for keystroke, then runs "handle space"
+
+    return () => {
+      window.removeEventListener("keydown", handleSpace); //Clean up
+    };
+  }, []);
+
+  //left right presses
+  const handleLeft = () => {
+    handleAnimate("left");
+    setFlip(false);
+
+    const idx = terms.findIndex((t) => t.id === currentTerm.id);
+    setTimeout(() => {
+      if (idx <= 0) {
+        setCurrentTerm(terms[terms.length - 1]);
+      } else {
+        setCurrentTerm(terms[idx - 1]);
+      }
+    }, 125);
+  };
+
+  const handleRight = () => {
+    handleAnimate("right");
+    setFlip(false);
+
+    const idx = terms.findIndex((t) => t.id === currentTerm.id);
+    setTimeout(() => {
+      if (idx >= terms.length - 1) {
+        setCurrentTerm(terms[0]);
+      } else {
+        setCurrentTerm(terms[idx + 1]);
+      }
+    }, 125);
+  };
+
+  //Left right keypress handler
+  useEffect(() => {
+  const handleKeyDown = (e) => {
+    if (e.code === "ArrowLeft") {
+      handleLeft();
+    } else if (e.code === "ArrowRight") {
+      handleRight();
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    window.removeEventListener("keydown", handleKeyDown);
+  };
+}, [currentTerm, terms]); // include deps if needed
+
 
   return (
-    <div className="flex flex-col gap-6 items-center p-4 min-h-screen w-full bg-white">
-      <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 ">
+    <div className="flex flex-col gap-4 items-center p-4 min-h-screen w-full bg-white overflow-y-visible">
+      <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 overflow-y-visible">
         The Flashcards
       </h2>
 
@@ -137,7 +219,7 @@ function FlashCardComponent() {
               : animateLeft
                 ? "slideLeft 0.25s ease"
                 : "none",
-                
+
           }}
           onAnimationEnd={() => {
             setAnimateRight(false);
@@ -150,10 +232,6 @@ function FlashCardComponent() {
             style={{ perspective: "1000px" }}
             onClick={() => {
               setFlip(f => !f);
-              setTimeout(
-                () => setCardStatus(s => (s === "term" ? "def" : "term")),
-                125
-              );
             }}
           >
 
@@ -164,14 +242,27 @@ function FlashCardComponent() {
                 transform: flip ? "rotateX(180deg)" : "rotateX(0deg)",
               }}
             >
-      
+
               <div
                 className="absolute inset-0 flex items-center justify-center font-manrope border-4 border-black rounded-md"
                 style={{ backfaceVisibility: "hidden" }}
               >
-                <h3 className="text-3xl font-semibold">
-                  {currentTerm.term}
-                </h3>
+                <div
+                  className="p-2 text-center break-words overflow-y-auto flex items-center justify-center"
+                  style={{
+                    maxHeight: "100%",
+                    wordBreak: "break-word",
+                    height: "100%",
+                    textAlign: "center",
+                    flexDirection: "column",
+                  }}
+                >
+                  <div>
+                    <h3 className="text-3xl font-semibold">
+                      {currentTerm.term}
+                    </h3>
+                  </div>
+                </div>
               </div>
 
               <div
@@ -181,10 +272,24 @@ function FlashCardComponent() {
                   transform: "rotateX(180deg)",
                 }}
               >
-                <h3 className="text-2xl font-normal">
-                  {currentTerm.def}
-                </h3>
+                <div
+                  className="p-2 text-center break-words overflow-y-auto flex items-center justify-center"
+                  style={{
+                    maxHeight: "100%",
+                    wordBreak: "break-word",
+                    height: "100%",
+                    textAlign: "center",
+                    flexDirection: "column",
+                  }}
+                >
+                  <div>
+                    <h3 className="text-2xl font-normal">
+                      {currentTerm.def}
+                    </h3>
+                  </div>
+                </div>
               </div>
+
             </div>
           </div>
         </div>
@@ -192,27 +297,17 @@ function FlashCardComponent() {
 
 
 
-        <div className="flex flex-row gap-8 items-center justify-center">
+        <div className="flex flex-row gap-8 items-center justify-center translate-y-[-20px]">
           <div
             className="flex p-4 cursor-pointer hover:scale-110 transition-all active:scale-90  duration-150 ease-out"
-            onClick={() => {
-              handleAnimate("left");
-              setCardStatus("term");
-              const idx = terms.findIndex((t) => t.id === currentTerm.id);
-              setTimeout(() => {
-                if (idx <= 0) {
-                  setCurrentTerm(terms[terms.length - 1]);
-                } else {
-                  setCurrentTerm(terms[idx - 1]);
-                }
-              }, 125);
-            }}
+             onClick={handleLeft}
           >
             <ArrowLeft
               size={50}
               className="flex cursor-pointer border-zinc-950  border-2 rounded-full p-2 "
             />
           </div>
+
           <div className="w-20 h-20  flex items-center justify-center cursor-pointer">
             <h4 className="text-2xl font-normal">
               {currentTerm.order}/{terms.length}
@@ -221,19 +316,7 @@ function FlashCardComponent() {
 
           <div
             className="flex p-4 cursor-pointer hover:scale-110 transition-all active:scale-90 duration-150 ease-out"
-            onClick={() => {
-              handleAnimate("right");
-              setCardStatus("term");
-              const idx = terms.findIndex((t) => t.id === currentTerm.id);
-
-              setTimeout(() => {
-                if (idx >= terms.length - 1) {
-                  setCurrentTerm(terms[0]);
-                } else {
-                  setCurrentTerm(terms[idx + 1]);
-                }
-              }, 125);
-            }}
+            onClick={handleRight}
           >
             <ArrowLeft
               size={50}
@@ -256,14 +339,13 @@ function FlashCardComponent() {
             </TableHead>
           </TableRow>
         </TableHeader>
-
-        <TableBody>
-          <DndContext
-            sensors={sensors}
-            onDragStart={({ active }) => setActiveId(active.id)}
-            onDragEnd={handleDragEnd}
-            onDragCancel={() => setActiveId(null)}
-          >
+        <DndContext
+          sensors={sensors}
+          onDragStart={({ active }) => setActiveId(active.id)}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => setActiveId(null)}
+        >
+          <TableBody>
             <SortableContext
               items={terms.map((t) => t.id)}
               strategy={verticalListSortingStrategy}
@@ -272,39 +354,37 @@ function FlashCardComponent() {
                 <TermRow key={term.id} term={term} />
               ))}
             </SortableContext>
+          </TableBody>
 
-            <DragOverlay adjustScale={false}>
-              {activeTerm && (
-                <table
-                  style={{
-                    width: tableRef.current?.offsetWidth,
-                    tableLayout: "fixed",
-                  }}
-                >
-                  <colgroup>
-                    {[...tableRef.current.querySelectorAll("thead th")].map(
-                      (th, idx) => (
-                        <col
-                          key={idx}
-                          style={{ width: th.offsetWidth + "px" }}
-                        />
-                      )
-                    )}
-                  </colgroup>
-                  <tbody>
-                    <TermRow term={activeTerm} dragOverlay />
-                  </tbody>
-                </table>
-              )}
-            </DragOverlay>
-          </DndContext>
-        </TableBody>
+          <DragOverlay adjustScale={false}>
+            {activeTerm && (
+              <table
+                style={{
+                  width: tableRef.current?.offsetWidth,
+                  tableLayout: "fixed",
+                }}
+              >
+                <colgroup>
+                  {[...tableRef.current?.querySelectorAll("thead th")].map(
+                    (th, idx) => (
+                      <col key={idx} style={{ width: th.offsetWidth + "px" }} />
+                    )
+                  )}
+                </colgroup>
+                <tbody>
+                  <TermRow term={activeTerm} dragOverlay />
+                </tbody>
+              </table>
+            )}
+          </DragOverlay>
+        </DndContext>
+
       </Table>
 
       <div className="fixed bottom-8 right-8 z-50">
         <AddTerm />
       </div>
-    </div>
+    </div >
   );
 }
 
