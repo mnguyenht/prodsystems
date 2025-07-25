@@ -1,5 +1,7 @@
+import React from "react";
 import { forwardRef } from "react";
 import { useTasks } from "@/context";
+
 import {
   Table,
   TableBody,
@@ -8,18 +10,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
+
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import Task from "../task"; // this renders all your TaskRows
 
-import "@fontsource/manrope";
-import "@fontsource/manrope/400.css";
-import "@fontsource/manrope/600.css";
-import "@fontsource/manrope/700.css";
+import Task from "../taskrenderer";
+
 import "../../App.css";
-import React from "react";
 
 type HomeProps = {
   search: string;
@@ -32,7 +31,6 @@ const Home = forwardRef<HTMLTableElement, HomeProps>(function Home(
   { search, currentList, currentSort, listNames },
   ref
 ) {
-
   const { tasks } = useTasks();
 
   return (
@@ -75,7 +73,8 @@ const Home = forwardRef<HTMLTableElement, HomeProps>(function Home(
       <TableBody>
         <SortableContext
           items={tasks.map((t) => t.id)}
-          strategy={verticalListSortingStrategy}         >
+          strategy={verticalListSortingStrategy}
+        >
           <Task
             search={search}
             currentList={currentList}

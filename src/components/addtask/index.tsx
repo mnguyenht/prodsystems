@@ -1,51 +1,44 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-    Plus,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 
+import { useTasks } from "@/context";
 
 import "../../App.css";
 
-import { useTasks } from "@/context";
-import React from "react";
-
-function AddTask({currentList, listNames}) {
+function AddTask({ currentList, listNames }) {
   const { setTasks } = useTasks();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-const addTask = () => {
-  if (!name.trim()) return;
+  const addTask = () => {
+    if (!name.trim()) return;
 
-  const listToUse =
-    currentList === "All Lists" ? listNames[0] : currentList;
+    const listToUse = currentList === "All Lists" ? listNames[0] : currentList;
 
-  const newTask = {
-    id: Date.now(),
-    list: listToUse,
-    name,
-    description,
-    completed: false,
+    const newTask = {
+      id: Date.now(),
+      list: listToUse,
+      name,
+      description,
+      completed: false,
+    };
+
+    setTasks((prev) => [...prev, newTask]);
+    setName("");
+    setDescription("");
   };
-
-  setTasks((prev) => [...prev, newTask]);
-  setName("");
-  setDescription("");
-};
-
 
   return (
     <Dialog>
@@ -114,4 +107,4 @@ const addTask = () => {
   );
 }
 
-export default AddTask
+export default AddTask;

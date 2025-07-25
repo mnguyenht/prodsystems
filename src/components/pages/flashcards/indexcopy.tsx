@@ -270,7 +270,7 @@ function FlashCardComponent() {
       </Table>
 
       <div className="fixed bottom-8 right-8 z-50">
-        <AddTerm />
+
       </div>
     </div>
   );

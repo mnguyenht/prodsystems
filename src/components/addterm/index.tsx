@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,22 +11,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  Plus,
-} from "lucide-react";
-
+import { useTerms } from "@/context/flashcardsindex";
+import { Plus } from "lucide-react";
 
 import "../../App.css";
-
-import { useTerms } from "../../context/flashcardsindex";
-import React from "react";
 
 function AddTerm({ open, setOpen }) {
   const { setTerms } = useTerms();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
- 
-
 
   const addTerm = () => {
     if (!name.trim()) return;
@@ -45,17 +37,17 @@ function AddTerm({ open, setOpen }) {
     setName("");
     setDescription("");
   };
-if (open) {
-  console.log("Still in the menu!");
-} if (!open) {
-  console.log("Not in the menu!");
-}
 
+  if (open) {
+    console.log("Still in the menu!");
+  }
 
+  if (!open) {
+    console.log("Not in the menu!");
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -68,9 +60,7 @@ if (open) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Term</DialogTitle>
-          <DialogDescription>
-            What do you want to learn?
-          </DialogDescription>
+          <DialogDescription>What do you want to learn?</DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-2">
           <div className="grid flex-1 gap-2">
@@ -121,4 +111,4 @@ if (open) {
   );
 }
 
-export default AddTerm
+export default AddTerm;

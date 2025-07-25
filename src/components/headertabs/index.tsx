@@ -1,12 +1,9 @@
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import "@fontsource/manrope";
-import "@fontsource/manrope/400.css";
-import "@fontsource/manrope/600.css";
-import "@fontsource/manrope/700.css";
-
-import { Link, useLocation } from "react-router-dom";
-import "./../../App.css";
 import React from "react";
+import { Link, useLocation } from "react-router-dom";
+
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import "./../../App.css";
 
 function HeaderTabs() {
   const location = useLocation();
@@ -14,7 +11,7 @@ function HeaderTabs() {
   const pathToTab = {
     "/": "todolist",
     "/Pomodoro": "pomodoro",
-        "/Flashcards": "flashcards",
+    "/Flashcards": "flashcards",
   };
 
   const currentTab = pathToTab[location.pathname] || "todolist";

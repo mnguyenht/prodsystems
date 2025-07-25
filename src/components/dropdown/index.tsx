@@ -1,22 +1,17 @@
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import "@fontsource/manrope";
-import "@fontsource/manrope/400.css";
-import "@fontsource/manrope/600.css";
-import "@fontsource/manrope/700.css";
-import {
-    ChevronDown
-} from "lucide-react";
-
-import "../../App.css";
 import React from "react";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-function DropDown({ status, setStatus, setTicking }) {
+import { ChevronDown } from "lucide-react";
+
+import "../../App.css";
+
+function DropDown({ status, setStatus, setTicking, }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-2 rounded-md border cursor-pointer px-2">
@@ -25,14 +20,13 @@ function DropDown({ status, setStatus, setTicking }) {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent>
-        {status.map((item, index) => (
+        {status.map((item) => (
           <DropdownMenuItem
             key={item}
             onClick={() => {
               // Move selected item to front
 
-              const reordered = [item, ...status.filter((s) => s !== item)];
-              setStatus(reordered);
+              setStatus([item, ...status.filter((s) => s !== item)]);
               setTicking(false);
             }}
             className="cursor-pointer"
@@ -44,6 +38,5 @@ function DropDown({ status, setStatus, setTicking }) {
     </DropdownMenu>
   );
 }
-
 
 export default DropDown;

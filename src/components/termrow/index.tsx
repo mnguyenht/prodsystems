@@ -1,5 +1,6 @@
+import React from "react";
+
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -14,19 +15,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TableCell, TableRow } from "@/components/ui/table";
+
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import "@fontsource/manrope";
-import "@fontsource/manrope/400.css";
-import "@fontsource/manrope/600.css";
-import "@fontsource/manrope/700.css";
+
 import { CircleX, Info, X } from "lucide-react";
+
+import { useTerms } from "@/context/flashcardsindex";
+
 import "../../App.css";
-import { useTerms } from "../../context/flashcardsindex";
-import React from "react";
 
 function TermRow({ term, dragOverlay = false }) {
-  const { terms, setTerms } = useTerms();
+  const { setTerms } = useTerms();
   const [open, setOpen] = React.useState(false);
 
   const {
@@ -53,9 +53,9 @@ function TermRow({ term, dragOverlay = false }) {
       };
 
   const removeTerm = () => {
-    setTerms(prev =>
+    setTerms((prev) =>
       prev
-        .filter(t => t.id !== term.id)
+        .filter((t) => t.id !== term.id)
         .map((t, i) => ({ ...t, order: i + 1 }))
     );
   };
@@ -84,11 +84,11 @@ function TermRow({ term, dragOverlay = false }) {
         <Button
           variant="outline"
           className="cursor-pointer"
-          onClick={e => {
+          onClick={(e) => {
             e.stopPropagation();
             removeTerm();
           }}
-          onPointerDown={e => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           <X />
         </Button>
@@ -98,7 +98,6 @@ function TermRow({ term, dragOverlay = false }) {
 
   return (
     <>
-
       <ContextMenu>
         <ContextMenuTrigger asChild>{RowContent}</ContextMenuTrigger>
         <ContextMenuContent className="p-2">
@@ -108,10 +107,7 @@ function TermRow({ term, dragOverlay = false }) {
           >
             <Info className="mr-2 h-4 w-4" /> Info
           </ContextMenuItem>
-          <ContextMenuItem
-            onClick={removeTerm}
-            className="cursor-pointer"
-          >
+          <ContextMenuItem onClick={removeTerm} className="cursor-pointer">
             <CircleX className="mr-2 h-4 w-4" /> Delete
           </ContextMenuItem>
         </ContextMenuContent>
@@ -127,7 +123,6 @@ function TermRow({ term, dragOverlay = false }) {
           </DialogContent>
         </Dialog>
       )}
-
     </>
   );
 }

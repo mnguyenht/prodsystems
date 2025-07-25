@@ -1,21 +1,15 @@
-import { useTasks } from "@/context";
+import React, { useTasks } from "@/context";
 
-import { PencilLine, Search, Trash } from "lucide-react";
-
-import React from "react";
-import { toast } from "sonner";
-import "../../App.css";
-import { Button } from "../ui/button";
-import { DialogFooter, DialogHeader } from "../ui/dialog";
-import { Input } from "../ui/input";
-
+import { Button } from "@/components/ui/button";
+import { DialogFooter, DialogHeader } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -25,13 +19,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import "@fontsource/manrope";
-import "@fontsource/manrope/400.css";
-import "@fontsource/manrope/600.css";
-import "@fontsource/manrope/700.css";
 
+import { PencilLine, Search, Trash } from "lucide-react";
 
+import { toast } from "sonner";
 
+import "../../App.css";
 
 function TopBar({
   currentSort,
@@ -49,7 +42,7 @@ function TopBar({
     setTasks((prev) => prev.filter((t) => t.list !== list));
     setCurrentList("All Lists");
   };
-  
+
   const renderLists = () => {
     return listNames.map((name) => (
       <SelectItem key={name} value={name}>
@@ -78,8 +71,7 @@ function TopBar({
   };
 
   return (
-   <div className="flex relative flex-row gap-8 w-full max-w-7xl items-center mx-auto px-4 py-1 overflow-hidden justify-between">
-
+    <div className="flex relative flex-row gap-8 w-full max-w-7xl items-center mx-auto px-4 py-1 overflow-hidden justify-between">
       <div className="flex flex-row gap-4 items-center">
         <Select
           value={currentList}
@@ -104,7 +96,6 @@ function TopBar({
           </SelectContent>
         </Select>
         <Dialog>
-          {/* only render trash icon if its not all lists */}
           {currentList === "All Lists" ? null : (
             <DialogTrigger>
               <Trash
@@ -187,23 +178,22 @@ function TopBar({
         </Dialog>
       </div>
 
-        <div className="relative">
-          <Search
-            size="20"
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <Input
-            type="text"
-            autoComplete="off"
-            placeholder="Search..."
-            className="pl-10 w-48"
-            onChange={(val) => {
-              setSearch(val.target.value);
-              console.log("Current Search:", val);
-            }}
-          />
-        </div>
-
+      <div className="relative">
+        <Search
+          size="20"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+        />
+        <Input
+          type="text"
+          autoComplete="off"
+          placeholder="Search..."
+          className="pl-10 w-48"
+          onChange={(val) => {
+            setSearch(val.target.value);
+            console.log("Current Search:", val);
+          }}
+        />
+      </div>
 
       <Select
         value={currentSort}
@@ -227,4 +217,4 @@ function TopBar({
   );
 }
 
-export default TopBar
+export default TopBar;

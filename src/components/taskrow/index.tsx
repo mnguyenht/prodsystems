@@ -1,49 +1,37 @@
+import React from "react";
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-    ContextMenu,
-    ContextMenuContent,
-    ContextMenuItem,
-    ContextMenuTrigger,
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import {
-    TableCell,
-    TableRow
-} from "@/components/ui/table";
-import {
-    useSortable
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import "@fontsource/manrope";
-import "@fontsource/manrope/400.css";
-import "@fontsource/manrope/600.css";
-import "@fontsource/manrope/700.css";
-import {
-    ArrowLeftRight,
-    Check,
-    CircleX,
-    Info,
-    X
-} from "lucide-react";
+import { TableCell, TableRow } from "@/components/ui/table";
 
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+import { ArrowLeftRight, Check, CircleX, Info, X } from "lucide-react";
+
+import { useTasks } from "@/context";
 
 import "../../App.css";
-import { useTasks } from "@/context"; 
-import React from "react";
 
 function TaskRow({ task, listNames, dragOverlay = false }) {
   const { setTasks } = useTasks();
@@ -74,15 +62,21 @@ function TaskRow({ task, listNames, dragOverlay = false }) {
       };
 
   const toggleComplete = () => {
-    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t));
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === task.id ? { ...t, completed: !t.completed } : t
+      )
+    );
   };
 
   const removeTask = () => {
-    setTasks(prev => prev.filter(t => t.id !== task.id));
+    setTasks((prev) => prev.filter((t) => t.id !== task.id));
   };
 
   const moveToList = (newList) => {
-    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, list: newList } : t));
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, list: newList } : t))
+    );
     setMoveOpen(false);
   };
 
@@ -99,23 +93,37 @@ function TaskRow({ task, listNames, dragOverlay = false }) {
           className="size-6 cursor-pointer"
           checked={task.completed}
           onCheckedChange={toggleComplete}
-          onClick={e => e.stopPropagation()}
-          onPointerDown={e => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
         />
       </TableCell>
-      <TableCell className={"px-4 py-2 w-[150px] font-medium break-words whitespace-normal " + (task.completed ? "line-through text-gray-400" : "")}>        {task.name}
+      <TableCell
+        className={
+          "px-4 py-2 w-[150px] font-medium break-words whitespace-normal " +
+          (task.completed ? "line-through text-gray-400" : "")
+        }
+      >
+        {" "}
+        {task.name}
       </TableCell>
-      <TableCell className={"px-4 py-2 w-50 break-words whitespace-normal text-left " + (task.completed ? "line-through text-gray-400" : "")}>        {task.description}
+      <TableCell
+        className={
+          "px-4 py-2 w-50 break-words whitespace-normal text-left " +
+          (task.completed ? "line-through text-gray-400" : "")
+        }
+      >
+        {" "}
+        {task.description}
       </TableCell>
       <TableCell className="px-4 py-2 w-[80px] text-right">
         <Button
           variant="outline"
           className="cursor-pointer"
-          onClick={e => {
+          onClick={(e) => {
             e.stopPropagation();
             removeTask();
           }}
-          onPointerDown={e => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           <X />
         </Button>
@@ -131,10 +139,16 @@ function TaskRow({ task, listNames, dragOverlay = false }) {
           <ContextMenuItem onClick={toggleComplete} className="cursor-pointer">
             <Check /> {task.completed ? "Uncheck" : "Check"}
           </ContextMenuItem>
-          <ContextMenuItem onClick={() => setMoveOpen(true)} className="cursor-pointer">
+          <ContextMenuItem
+            onClick={() => setMoveOpen(true)}
+            className="cursor-pointer"
+          >
             <ArrowLeftRight /> Move To
           </ContextMenuItem>
-          <ContextMenuItem onClick={() => setOpen(true)} className="cursor-pointer">
+          <ContextMenuItem
+            onClick={() => setOpen(true)}
+            className="cursor-pointer"
+          >
             <Info /> Info
           </ContextMenuItem>
           <ContextMenuItem onClick={removeTask} className="cursor-pointer">
@@ -174,7 +188,7 @@ function TaskRow({ task, listNames, dragOverlay = false }) {
                     <SelectValue placeholder="Select a list" />
                   </SelectTrigger>
                   <SelectContent>
-                    {listNames.map(name => (
+                    {listNames.map((name) => (
                       <SelectItem key={name} value={name}>
                         {name}
                       </SelectItem>
@@ -190,4 +204,4 @@ function TaskRow({ task, listNames, dragOverlay = false }) {
   );
 }
 
-export default TaskRow
+export default TaskRow;

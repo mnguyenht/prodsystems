@@ -1,12 +1,16 @@
-import { Button } from "@/components/ui/button";
-import "../../../App.css";
+import React from "react";
 
+import { Button } from "@/components/ui/button";
+
+import { ChevronLast } from "lucide-react";
+
+import { toast } from "sonner";
+
+import { useTimer } from "@/context/pomoindex";
 import ChangeSettings from "@/components/changesettings";
 import DropDown from "@/components/dropdown";
-import { ChevronLast } from "lucide-react";
-import { toast } from "sonner";
-import React from "react";
-import { useTimer } from "../../../context/pomoindex";
+
+import "../../../App.css";
 
 function PomodoroComponent() {
   const {
@@ -22,10 +26,9 @@ function PomodoroComponent() {
     setPomodoroTime,
     shortBreakTime,
     setShortBreakTime,
-
   } = useTimer();
 
-    const switchStatus = () => {
+  const switchStatus = () => {
     const reordered = [status[1], status[0]];
     setStatus(reordered);
     setTicking(false);
@@ -38,8 +41,6 @@ function PomodoroComponent() {
       setSeconds(0);
     }
   };
-  
-
 
   return (
     <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-y-hidden bg-white">

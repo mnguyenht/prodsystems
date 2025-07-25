@@ -1,11 +1,11 @@
-import { Toaster } from "sonner";
-
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-import HeaderTabs from "../components/headertabs/index";
-import TodoList from "../pages/todolist/index";
-import Pomodoro from "../pages/pomo/index";
-import Flashcards from "../pages/flashcards/index";
+import { Toaster } from "sonner";
+
+import HeaderTabs from "@/components/headertabs/index";
+import TodoList from "@/pages/todolist/index";
+import Pomodoro from "@/pages/pomo/index";
+import Flashcards from "@/pages/flashcards/index";
 
 const BrowerRouter = () => {
   return (

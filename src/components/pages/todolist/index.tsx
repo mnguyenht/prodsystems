@@ -1,9 +1,6 @@
+import React from "react";
+
 import { useEffect, useState, useRef } from "react";
-import "../../../App.css";
-import "@fontsource/manrope";
-import "@fontsource/manrope/400.css";
-import "@fontsource/manrope/600.css";
-import "@fontsource/manrope/700.css";
 
 import {
   closestCorners,
@@ -16,27 +13,21 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 
-import TopBar from "@/components/topbar";
+import TopBar from "@/components/topbar/index";
 import AddTask from "@/components/addtask";
 import TaskRow from "@/components/taskrow";
 import Home from "@/components/home";
 
-import { TasksContext, useTasks } from "../../../context/index"; // if you have split context
-import React from "react";
-
-
-
-
+import { TasksContext, useTasks } from "@/context/index";
+import "../../../App.css";
 
 function TodoListComponent() {
   const { tasks, setTasks } = useTasks();
-
   const [currentList, setCurrentList] = useState("All Lists");
   const [currentSort, setCurrentSort] = useState("Id");
   const [search, setSearch] = useState("");
   const [listNames, setListNames] = useState([""]);
   const [newListName, setNewListName] = useState("");
-
   const tableRef = useRef(null);
   const [activeId, setActiveId] = useState(null);
 
@@ -60,12 +51,13 @@ function TodoListComponent() {
     const unique = Array.from(new Set(tasks.map((t) => t.list)));
     setListNames(unique);
   }, [tasks]);
-  
 
   return (
     <TasksContext.Provider value={{ tasks, setTasks }}>
-    <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-y-hidden bg-white">
-      <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">The Todo List </h2>
+      <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-y-hidden bg-white">
+        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+          The Todo List{" "}
+        </h2>
 
         <TopBar
           currentSort={currentSort}
@@ -74,7 +66,6 @@ function TodoListComponent() {
           setCurrentList={setCurrentList}
           setSearch={setSearch}
           listNames={listNames}
-
           newListName={newListName}
           setNewListName={setNewListName}
         />
@@ -133,3 +124,5 @@ function TodoListComponent() {
 }
 
 export default TodoListComponent;
+
+

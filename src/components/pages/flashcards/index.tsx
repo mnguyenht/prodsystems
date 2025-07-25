@@ -1,12 +1,8 @@
-import { Button } from "@/components/ui/button";
-import "../../../App.css";
 
-import ChangeSettings from "@/components/changesettings";
-import DropDown from "@/components/dropdown";
-import { ArrowLeft, ArrowRight, ChevronLast } from "lucide-react";
-import { toast } from "sonner";
 import React, { useEffect, useRef, useState } from "react";
-import { useTimer } from "../../../context/pomoindex";
+import { ArrowLeft } from "lucide-react";
+
+
 import {
   Table,
   TableBody,
@@ -18,12 +14,6 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Separator } from "@radix-ui/react-dropdown-menu";
-import { TermsContext, useTerms } from "../../../context/flashcardsindex";
-
-import AddTask from "@/components/addtask";
-import AddTerm from "@/components/addterm";
-import TermRow from "../../termrow/index";
 import {
   DndContext,
   DragOverlay,
@@ -33,44 +23,51 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 
-//hover effects !
-//clicking on the card !
-//linking props to ui elements !
-//drag and drop !
-//fix id system when drag and drop + deleting !
+import { useTerms } from "@/context/flashcardsindex";
 
-//double clicking alot highlights stuff for some reason just disable highlighting !
+import AddTerm from "@/components/addterm";
+import TermRow from "@/components/termrow";
 
-//Reorder on delete !
-//More UX changes !
-//flip and slide animations !
+import "../../../App.css";
 
-//migrate data to local storage !
-//arrow keys + space to activate buttons !
-//if text is too long it will break the card
-//Right click breaks side bar
+
+// hover effects !
+// clicking on the card !
+// linking props to ui elements !
+// drag and drop !
+// fix id system when drag and drop + deleting !
+
+// double clicking alot highlights stuff for some reason just disable highlighting !
+
+// Reorder on delete !
+// More UX changes !
+// flip and slide animations !
+
+// migrate data to local storage !
+// arrow keys + space to activate buttons !
+// if text is too long it will break the card
+// Right click breaks side bar
 
 function FlashCardComponent() {
   const { terms, setTerms } = useTerms();
   const [activeId, setActiveId] = useState(null);
   const [currentTerm, setCurrentTerm] = useState(terms[0]);
-
   const [animateRight, setAnimateRight] = useState(false);
   const [animateLeft, setAnimateLeft] = useState(false);
   const [flip, setFlip] = useState(false);
   const [open, setOpen] = useState(false);
 
-  //Directions are inverted here to simulate the card direction coming in, making it look more natural
+  // Directions are inverted here to simulate the card direction coming in, making it look more natural
   const handleAnimate = (direction) => {
     if (direction === "left") {
-      setAnimateRight(false); // remove
+      setAnimateRight(false);
       requestAnimationFrame(() => {
-        setAnimateRight(true); // re-add on next frame
+        setAnimateRight(true); 
       });
     } else {
-      setAnimateLeft(false); // remove
+      setAnimateLeft(false); 
       requestAnimationFrame(() => {
-        setAnimateLeft(true); // re-add on next frame
+        setAnimateLeft(true);
       });
     }
   };
@@ -87,7 +84,7 @@ function FlashCardComponent() {
     })
   );
 
-  //reordering
+  // reordering
   const activeTerm = terms.find((t) => t.id === activeId);
   const handleDragEnd = ({ active, over }) => {
     setActiveId(null);
@@ -107,7 +104,7 @@ function FlashCardComponent() {
     setCurrentTerm(terms[0]);
   }, [terms]);
 
-  //Detect if no terms
+  // Detect if no terms
   useEffect(() => {
     const placeholder = [
       {
@@ -117,22 +114,23 @@ function FlashCardComponent() {
         def: "Use the + button on the bottom right corner",
       },
     ];
+    
     if (!Array.isArray(terms) || terms.length === 0) {
       localStorage.setItem("terms", JSON.stringify(placeholder));
       localStorage.setItem("hasVisited", "true");
-      setTerms(placeholder); // 👈 reset terms state
-      setCurrentTerm(placeholder[0]); // 👈 reset currentTerm
+      setTerms(placeholder); 
+      setCurrentTerm(placeholder[0]);
     } else {
       localStorage.setItem("terms", JSON.stringify(terms));
     }
   }, [terms]);
 
-  //Keeps localstorage updated
+  // Keeps localstorage updated
   useEffect(() => {
     localStorage.setItem("terms", JSON.stringify(terms));
   }, [terms]);
 
-  //space to flip
+  // space to flip
   useEffect(() => {
     const handleSpace = (e) => {
       if (open) return;
@@ -143,14 +141,14 @@ function FlashCardComponent() {
       }
     };
 
-    window.addEventListener("keydown", handleSpace); //Listens for keystroke, then runs "handle space"
+    window.addEventListener("keydown", handleSpace); // Listens for keystroke, then runs "handle space"
 
     return () => {
-      window.removeEventListener("keydown", handleSpace); //Clean up
+      window.removeEventListener("keydown", handleSpace); // Clean up
     };
   }, [open]);
 
-  //left right presses
+  // left right presses
   const handleLeft = () => {
     handleAnimate("left");
     setFlip(false);
@@ -179,9 +177,8 @@ function FlashCardComponent() {
     }, 125);
   };
 
-  //Left right keypress handler
+  // Left right keypress handler
   useEffect(() => {
-
     const handleKeyDown = (e) => {
       if (open) return;
       if (e.code === "ArrowLeft") {
@@ -196,9 +193,8 @@ function FlashCardComponent() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [currentTerm, terms, open]); 
+  }, [currentTerm, terms, open]);
 
-  
   return (
     <div className="flex flex-col gap-4 items-center p-4 min-h-screen w-full bg-white overflow-y-visible">
       <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 overflow-y-visible">
@@ -206,7 +202,6 @@ function FlashCardComponent() {
       </h2>
 
       <div className="flex flex-col">
-        {/* OUTER: slide animation + reset on end */}
         <div
           className="overflow-x-hidden"
           style={{
@@ -214,8 +209,8 @@ function FlashCardComponent() {
             animation: animateRight
               ? "slideRight 0.25s ease"
               : animateLeft
-                ? "slideLeft 0.25s ease"
-                : "none",
+              ? "slideLeft 0.25s ease"
+              : "none",
           }}
           onAnimationEnd={() => {
             setAnimateRight(false);

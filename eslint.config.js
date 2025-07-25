@@ -24,6 +24,12 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      "spaced-comment": ["error", "always", { "markers": ["/"] }],
+      
     },
   },
 ])
+
+
+
+

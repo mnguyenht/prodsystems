@@ -25,6 +25,8 @@
     "@radix-ui/react-switch": "^1.2.5",
     "@radix-ui/react-tabs": "^1.1.12",
     "@tailwindcss/vite": "^4.1.11",
+    "airbnb-browser-shims": "^3.3.0",
+    "babel-preset-airbnb": "^5.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.523.0",
@@ -39,6 +41,10 @@
     "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
+    "@babel/cli": "^7.28.0",
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-react": "^7.27.1",
     "@eslint/js": "^9.29.0",
     "@types/node": "^24.0.4",
     "@types/react": "^19.1.8",
