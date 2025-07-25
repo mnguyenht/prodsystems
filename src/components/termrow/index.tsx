@@ -23,7 +23,7 @@ import { CircleX, Info, X } from "lucide-react";
 
 import { useTerms } from "@/context/flashcardsindex";
 
-import "../../App.css";
+
 
 function TermRow({ term, dragOverlay = false }) {
   const { setTerms } = useTerms();
@@ -68,15 +68,15 @@ function TermRow({ term, dragOverlay = false }) {
       {...(!dragOverlay && listeners)}
       className="hover:bg-gray-100"
     >
-      <TableCell className="px-5 py-2 font-normal break-words whitespace-normal">
+      <TableCell className="px-5 py-2 font-normal break-words whitespace-pre-wrap">
         {term.order}
       </TableCell>
 
-      <TableCell className="py-2 font-medium break-words whitespace-normal">
+      <TableCell className="py-2 font-medium break-words whitespace-pre-wrap">
         {term.term}
       </TableCell>
 
-      <TableCell className="py-2 break-words whitespace-normal text-left">
+      <TableCell className="py-2 break-words whitespace-pre-wrap text-left">
         {term.def}
       </TableCell>
 

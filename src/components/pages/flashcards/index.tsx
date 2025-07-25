@@ -28,7 +28,7 @@ import { useTerms } from "@/context/flashcardsindex";
 import AddTerm from "@/components/addterm";
 import TermRow from "@/components/termrow";
 
-import "../../../App.css";
+
 
 
 // hover effects !
@@ -196,7 +196,7 @@ function FlashCardComponent() {
   }, [currentTerm, terms, open]);
 
   return (
-    <div className="flex flex-col gap-4 items-center p-4 min-h-screen w-full bg-white overflow-y-visible">
+    <div className="flex flex-col gap-4 items-center p-4 min-h-screen w-full bg-white overflow-y-visible" style={{ userSelect: "none" }}>
       <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 overflow-y-visible">
         The Flashcards
       </h2>
@@ -246,7 +246,7 @@ function FlashCardComponent() {
                   }}
                 >
                   <div>
-                    <h3 className="text-3xl font-semibold">
+                    <h3 className="text-3xl font-semibold whitespace-pre-wrap">
                       {currentTerm.term}
                     </h3>
                   </div>
@@ -271,7 +271,7 @@ function FlashCardComponent() {
                   }}
                 >
                   <div>
-                    <h3 className="text-2xl font-normal">{currentTerm.def}</h3>
+                    <h3 className="text-2xl font-normal whitespace-pre-wrap w-full">{currentTerm.def}</h3>
                   </div>
                 </div>
               </div>

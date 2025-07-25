@@ -31,7 +31,7 @@ import { ArrowLeftRight, Check, CircleX, Info, X } from "lucide-react";
 
 import { useTasks } from "@/context";
 
-import "../../App.css";
+
 
 function TaskRow({ task, listNames, dragOverlay = false }) {
   const { setTasks } = useTasks();

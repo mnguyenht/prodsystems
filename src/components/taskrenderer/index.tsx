@@ -1,7 +1,7 @@
 import React from "react";
 import { useTasks } from "@/context";
 import TaskRow from "../taskrow";
-import "../../App.css";
+
 
 function TaskRenderer({ search, currentList, currentSort, listNames }) {
   const { tasks, setTasks } = useTasks();

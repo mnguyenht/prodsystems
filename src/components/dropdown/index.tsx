@@ -9,7 +9,7 @@ import {
 
 import { ChevronDown } from "lucide-react";
 
-import "../../App.css";
+
 
 function DropDown({ status, setStatus, setTicking, }) {
   return (

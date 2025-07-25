@@ -19,7 +19,7 @@ import TaskRow from "@/components/taskrow";
 import Home from "@/components/home";
 
 import { TasksContext, useTasks } from "@/context/index";
-import "../../../App.css";
+
 
 function TodoListComponent() {
   const { tasks, setTasks } = useTasks();

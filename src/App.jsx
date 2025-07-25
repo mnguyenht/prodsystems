@@ -1,4 +1,3 @@
-import "./App.css";
 import TasksContext from "./context/index";
 import BrowerRouter from "./router/index";
 import { useState, useEffect } from "react";
@@ -15,7 +14,7 @@ const App = () => {
       def: "Use the + button on the bottom right corner",
     },
   ];
-  //Sets the state 
+  // Sets the state 
   const [terms, setTerms] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem("terms"));
@@ -43,8 +42,32 @@ const App = () => {
   description: "Filter out right‑clicks from outside‑click logic to keep sidebar open",
   completed: false,
 },
+  {
+    id: 3,
+    list: "List 2",
+    name: "Right‑click no longer closes sidebar", 
+    description: "Filter out right‑clicks from outside‑click logic to keep sidebar open",
+    completed: false,
+  },
+  {
+    id: 4,
+    list: "List 2", 
+    name: "Edit menu now has validation",
+    description: "Prefills task info in the edit dialog and enforces required input checks using react-hook-form",
+    completed: false,
+  },
+   {
+    id: 5,
+    list: "List 2",
+    name: "weird border drag and drop thing", 
+    description: "yeah", 
+    completed: false,
+  },
+
 
   ]);
+
+  
 
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
@@ -58,7 +81,7 @@ const App = () => {
     parseInt(localStorage.getItem("shortBreakTime") || "5")
   );
 
-  //First ever init
+  // First ever init
   useEffect(() => {
     const hasVisited = localStorage.getItem("hasVisited");
 
@@ -98,7 +121,7 @@ const App = () => {
     if (!ticking) return;
 
     const interval = setInterval(() => {
-      //Tick down seconds
+      // Tick down seconds
       setSeconds((prevSeconds) => {
         if (minutes === 0 && seconds === 0) {
           const reordered = [status[1], status[0]];
@@ -112,7 +135,7 @@ const App = () => {
           return prevSeconds - 1;
         }
       });
-      //Timer finished congats amazing also seconds == 1 because lifecycle reasons
+      // Timer finished congats amazing also seconds == 1 because lifecycle reasons
       setMinutes((prevMinutes) => {
         return seconds === 0 && minutes !== 0 ? prevMinutes - 1 : prevMinutes;
       });

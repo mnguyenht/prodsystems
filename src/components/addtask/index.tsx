@@ -15,7 +15,7 @@ import { Plus } from "lucide-react";
 
 import { useTasks } from "@/context";
 
-import "../../App.css";
+
 
 function AddTask({ currentList, listNames }) {
   const { setTasks } = useTasks();

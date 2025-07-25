@@ -18,7 +18,7 @@ import {
 
 import Task from "../taskrenderer";
 
-import "../../App.css";
+
 
 type HomeProps = {
   search: string;

@@ -10,7 +10,7 @@ import { useTimer } from "@/context/pomoindex";
 import ChangeSettings from "@/components/changesettings";
 import DropDown from "@/components/dropdown";
 
-import "../../../App.css";
+
 
 function PomodoroComponent() {
   const {

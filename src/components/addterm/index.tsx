@@ -13,8 +13,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { useTerms } from "@/context/flashcardsindex";
 import { Plus } from "lucide-react";
+import { Textarea } from "../ui/textarea";
 
-import "../../App.css";
+
 
 function AddTerm({ open, setOpen }) {
   const { setTerms } = useTerms();
@@ -46,6 +47,9 @@ function AddTerm({ open, setOpen }) {
     console.log("Not in the menu!");
   }
 
+  console.log(description)
+  
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -71,13 +75,17 @@ function AddTerm({ open, setOpen }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-            <Input
-              type="text"
-              required
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+        <Textarea
+  required
+  placeholder="Description"
+  value={description}
+  onChange={(e) => {
+    console.log(e.target.value)
+    
+    setDescription(e.target.value)
+  }}
+  className="w-full"
+/>
           </div>
         </div>
         <DialogFooter className="p-0">

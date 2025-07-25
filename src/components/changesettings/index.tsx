@@ -17,7 +17,7 @@ import { Settings } from "lucide-react";
 
 import { toast } from "sonner";
 
-import "../../App.css";
+
 
 function ChangeSettings({
   pomodoroTime,

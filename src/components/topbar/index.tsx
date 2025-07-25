@@ -24,7 +24,7 @@ import { PencilLine, Search, Trash } from "lucide-react";
 
 import { toast } from "sonner";
 
-import "../../App.css";
+
 
 function TopBar({
   currentSort,

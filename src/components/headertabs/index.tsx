@@ -3,8 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import "./../../App.css";
-
 function HeaderTabs() {
   const location = useLocation();
 
