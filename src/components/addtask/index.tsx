@@ -15,33 +15,40 @@ import { Plus } from "lucide-react";
 
 import { useTasks } from "@/context";
 
-
+import { Controller, useForm } from "react-hook-form";
+import { Textarea } from "../ui/textarea";
 
 function AddTask({ currentList, listNames }) {
+  const [open, setOpen] = useState(false);
   const { setTasks } = useTasks();
-  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const addTask = () => {
-    if (!name.trim()) return;
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({ defaultValues: { taskname: "" } });
 
+  const onSubmit = (data) => {
     const listToUse = currentList === "All Lists" ? listNames[0] : currentList;
 
     const newTask = {
       id: Date.now(),
       list: listToUse,
-      name,
+      name: data.taskname,
       description,
       completed: false,
     };
 
     setTasks((prev) => [...prev, newTask]);
-    setName("");
+    reset();
     setDescription("");
+    setOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -51,57 +58,71 @@ function AddTask({ currentList, listNames }) {
           <Plus className="size-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+
+      <DialogContent className="sm:max-w-md flex-col">
         <DialogHeader>
           <DialogTitle>Add Task</DialogTitle>
           <DialogDescription>
             What do you wish to accomplish today?
           </DialogDescription>
         </DialogHeader>
-        <div className="flex items-center gap-2">
-          <div className="grid flex-1 gap-2">
-            <Input
-              type="text"
-              required
-              placeholder="Your Task"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <Input
-              type="text"
-              required
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+
+        <form
+          className="flex  gap-4 flex-col w-full"
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+        >
+          <div>
+            <div className="flex flex-col w-full gap-2">
+              <Controller
+                name="taskname"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Input
+                    className="w-full"
+                    type="text"
+                    placeholder="Your Task"
+                    value={field.value || ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
+                )}
+              />
+              {errors.taskname && (
+                <p className="text-red-500">* This Field is Required</p>
+              )}
+
+              <Textarea
+                className="w-full"
+                placeholder="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
-        <DialogFooter className="p-0">
-          <div className="flex w-full justify-between items-center">
-            <DialogClose asChild>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  setName("");
-                  setDescription("");
-                }}
-                className="cursor-pointer"
-              >
-                Cancel
-              </Button>
-            </DialogClose>
-            <DialogClose asChild>
-              <Button
-                type="button"
-                onClick={addTask}
-                className="cursor-pointer"
-              >
+
+          <DialogFooter className="flex w-full justify-end">
+            <div className="flex w-full flex-row items-end  justify-end gap-4 ">
+              <DialogClose asChild>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    reset();
+                    setDescription("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </DialogClose>
+
+              <Button type="submit" className="cursor-pointer">
                 Save
               </Button>
-            </DialogClose>
-          </div>
-        </DialogFooter>
+
+            </div>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,8 +10,10 @@ import {
 } from "@/components/ui/context-menu";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -27,16 +29,27 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-import { ArrowLeftRight, Check, CircleX, Info, X } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Check,
+  CircleX,
+  Info,
+  SquarePen,
+  X,
+} from "lucide-react";
 
 import { useTasks } from "@/context";
 
-
+import { Controller, useForm } from "react-hook-form";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 
 function TaskRow({ task, listNames, dragOverlay = false }) {
-  const { setTasks } = useTasks();
+  const { tasks, setTasks } = useTasks();
   const [open, setOpen] = React.useState(false);
   const [moveOpen, setMoveOpen] = React.useState(false);
+  const [editOpen, setEditOpen] = React.useState(false);
+  const [description, setDescription] = useState(task?.description || "");
 
   const {
     attributes,
@@ -46,6 +59,18 @@ function TaskRow({ task, listNames, dragOverlay = false }) {
     transition,
     isDragging,
   } = useSortable({ id: task.id, animateLayoutChanges: () => false });
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      taskname: task?.name || "",
+      description: task?.description || "",
+    },
+  });
 
   const style = dragOverlay
     ? {
@@ -78,6 +103,29 @@ function TaskRow({ task, listNames, dragOverlay = false }) {
       prev.map((t) => (t.id === task.id ? { ...t, list: newList } : t))
     );
     setMoveOpen(false);
+  };
+
+  // keep track of states/props
+  useEffect(() => {
+    reset({
+      taskname: task?.name || "",
+      description: task?.description || "",
+    });
+    setDescription(task?.description || "");
+  }, [task, reset]);
+
+  // general task updating function
+  const updateTask = (id, updates) => {
+    const newTasks = tasks.map((task) =>
+      task.id === id ? { ...task, ...updates } : task
+    );
+    setTasks(newTasks);
+  };
+
+  // Actual submit function
+  const onEditSubmit = (data) => {
+    updateTask(task.id, { name: data.taskname, description });
+    setEditOpen(false);
   };
 
   const RowContent = (
@@ -140,6 +188,12 @@ function TaskRow({ task, listNames, dragOverlay = false }) {
             <Check /> {task.completed ? "Uncheck" : "Check"}
           </ContextMenuItem>
           <ContextMenuItem
+            onClick={() => setEditOpen(true)}
+            className="cursor-pointer"
+          >
+            <SquarePen /> Edit
+          </ContextMenuItem>
+          <ContextMenuItem
             onClick={() => setMoveOpen(true)}
             className="cursor-pointer"
           >
@@ -197,6 +251,74 @@ function TaskRow({ task, listNames, dragOverlay = false }) {
                 </Select>
               </DialogDescription>
             </DialogHeader>
+          </DialogContent>
+        </Dialog>
+      )}
+      {editOpen && (
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="sm:max-w-md flex-col">
+            <DialogHeader>
+              <DialogTitle>Edit Task</DialogTitle>
+            </DialogHeader>
+
+            <form
+              className="flex  gap-4 flex-col w-full"
+              onSubmit={handleSubmit(onEditSubmit)}
+              noValidate
+            >
+              <div>
+                <div className="flex flex-col w-full gap-2">
+                  <Controller
+                    name="taskname"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field }) => (
+                      <Input
+                        className="w-full"
+                        type="text"
+                        placeholder="Your Task"
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    )}
+                  />
+
+                  {errors.taskname && (
+                    <p className="text-red-500 text-sm">
+                      * This Field is Required
+                    </p>
+                  )}
+
+                  <Textarea
+                    className="w-full"
+                    placeholder="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter className="flex w-full justify-end">
+                <div className="flex w-full flex-row items-end  justify-end gap-4 ">
+                  <DialogClose asChild>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        reset();
+                        setDescription("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </DialogClose>
+
+                  <Button type="submit" className="cursor-pointer">
+                    Save
+                  </Button>
+                </div>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
       )}
