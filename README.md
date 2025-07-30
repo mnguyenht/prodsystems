@@ -1,5 +1,10 @@
-Lesson 4 - Pomodoro Timer
+A simple, minimalist productivity tools collection
 
 ## Project Description
 
-Learnings: React router, useEffect, setInterval, Clock logics, localStorage, and more.
+Created using
+-React
+-Tailwind
+-Shadcn
+-dnd-kit
+-React Hook Form
