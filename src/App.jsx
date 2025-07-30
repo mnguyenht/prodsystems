@@ -6,7 +6,7 @@ import TimerContext from "./context/pomoindex";
 import TermsContext from "./context/flashcardsindex";
 
 const App = () => {
-  const placeholder = [
+  const placeholderTerm = [
     {
       id: 1,
       order: 1,
@@ -14,7 +14,7 @@ const App = () => {
       def: "Use the + button on the bottom right corner",
     },
   ];
-  // Sets the state
+  // Sets the state for terms
   const [terms, setTerms] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem("terms"));
@@ -22,43 +22,38 @@ const App = () => {
         return stored;
       }
     } catch {}
-    return placeholder;
+    return placeholderTerm;
   });
 
-  const [tasks, setTasks] = useState([
+  const placeholderTask = [
     {
       id: 1,
       list: "List 1",
-      name: "Fix long text breaking the card",
-      description:
-        "Ensure text wraps or truncates so the card layout stays intact",
+      name: "Create your first task",
+      description: "Use the + button below to create your first task",
       completed: false,
     },
-    {
-      id: 2,
-      list: "List 1",
-      name: "Right‑click no longer closes sidebar",
-      description:
-        "Filter out right‑clicks from outside‑click logic to keep sidebar open",
-      completed: false,
-    },
+  ];
+  // Sets the state for tasks
+  const [tasks, setTasks] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("tasks"));
+      if (Array.isArray(stored) && stored.length > 0) {
+        return stored;
+      }
+    } catch {}
+    return placeholderTask;
+  });
 
-    {
-      id: 4,
-      list: "List 2",
-      name: "Edit menu now has validation",
-      description:
-        "Prefills task info in the edit dialog and enforces required input checks using react-hook-form",
-      completed: false,
-    },
-    {
-      id: 5,
-      list: "List 2",
-      name: "weird border drag and drop thing",
-      description: "yeah",
-      completed: false,
-    },
-  ]);
+  const [lists, setLists] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("lists"));
+      if (Array.isArray(stored) && stored.length > 0) {
+        return stored;
+      }
+    } catch {}
+    return;
+  });
 
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);

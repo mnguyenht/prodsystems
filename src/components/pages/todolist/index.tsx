@@ -20,8 +20,6 @@ import Home from "@/components/home";
 
 import { TasksContext, useTasks } from "@/context/index";
 
-
-
 function TodoListComponent() {
   const { tasks, setTasks } = useTasks();
   const [currentList, setCurrentList] = useState("All Lists");
@@ -31,6 +29,33 @@ function TodoListComponent() {
   const [newListName, setNewListName] = useState("");
   const tableRef = useRef(null);
   const [activeId, setActiveId] = useState(null);
+  useEffect(() => {
+    const placeholder = [
+      {
+        id: 1,
+        list: "List 1",
+        name: "Create your first task",
+        description: "Use the + button below to create your first task",
+        completed: false,
+      },
+    ];
+
+    if (!Array.isArray(tasks) || tasks.length === 0) {
+      localStorage.setItem("tasks", JSON.stringify(placeholder));
+      localStorage.setItem("hasVisited", "true");
+      setTasks(placeholder);
+      setListNames(["List 1"]); 
+    } else {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+      const unique = Array.from(new Set(tasks.map((t) => t.list)));
+      setListNames(unique); 
+    }
+  }, [tasks]);
+
+  // Keeps localstorage updated
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -67,8 +92,7 @@ function TodoListComponent() {
           setCurrentList={setCurrentList}
           setSearch={setSearch}
           listNames={listNames}
-          newListName={newListName}
-          setNewListName={setNewListName}
+          setListNames={setListNames}
         />
 
         <DndContext
@@ -118,12 +142,13 @@ function TodoListComponent() {
       </div>
 
       <div className="fixed bottom-8 right-8 z-50">
-        <AddTask currentList={currentList} listNames={listNames} />
+        <AddTask
+          currentList={currentList}
+          listNames={listNames}
+        />
       </div>
     </TasksContext.Provider>
   );
 }
 
 export default TodoListComponent;
-
-

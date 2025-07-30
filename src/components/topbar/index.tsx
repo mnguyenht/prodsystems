@@ -1,5 +1,5 @@
-import React, { useTasks } from "@/context";
-
+import React, { useState } from "react";
+import { useTasks } from "@/context";
 import { Button } from "@/components/ui/button";
 import { DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -19,12 +19,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-
-import { PencilLine, Search, Trash } from "lucide-react";
-
+import { PencilLine, Plus, Search, Trash } from "lucide-react";
 import { toast } from "sonner";
-
-
+import { useForm, Controller } from "react-hook-form";
 
 function TopBar({
   currentSort,
@@ -33,22 +30,22 @@ function TopBar({
   setCurrentList,
   setSearch,
   listNames,
-  newListName,
-  setNewListName,
+  setListNames,
 }) {
   const { tasks, setTasks } = useTasks();
+  const [newListName, setNewListName] = useState(""); // rename dialog
+  const [openCreateList, setOpenCreateList] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({ defaultValues: { newlist: "" } });
 
   const removeList = (list) => {
     setTasks((prev) => prev.filter((t) => t.list !== list));
     setCurrentList("All Lists");
-  };
-
-  const renderLists = () => {
-    return listNames.map((name) => (
-      <SelectItem key={name} value={name}>
-        {name}
-      </SelectItem>
-    ));
   };
 
   const renameList = () => {
@@ -70,21 +67,38 @@ function TopBar({
     setNewListName("");
   };
 
+  const createList = (data) => {
+    const listName = data.newlist.trim();
+    if (!listName) return;
+
+    const newTask = {
+      id: Date.now(),
+      list: listName,
+      name: "By the way",
+      description: "Lists will automatically delete themselves upon not having any tasks in them",
+      completed: false,
+    };
+
+    setTasks((prev) => [...prev, newTask]);
+
+    setListNames((prev) =>
+      prev.includes(listName) ? prev : [...prev, listName]
+    );
+
+    setCurrentList(listName);
+    reset();
+    setOpenCreateList(false);
+  };
+
   return (
     <div className="flex relative flex-row gap-8 w-full max-w-7xl items-center mx-auto px-4 py-1 overflow-hidden justify-between">
       <div className="flex flex-row gap-4 items-center">
         <Select
           value={currentList}
-          onValueChange={(val) => {
-            setCurrentList(val);
-            console.log("Current list:", val);
-          }}
+          onValueChange={(val) => setCurrentList(val)}
         >
           <SelectTrigger className="w-relative hover:border-black cursor-pointer">
-            <SelectValue
-              placeholder={currentList}
-              className="hover:border-b-2 border-b-transparent"
-            />
+            <SelectValue placeholder={currentList} />
           </SelectTrigger>
           <SelectContent>
             <div className="px-2 py-1 text-sm text-gray-500">Select a List</div>
@@ -92,11 +106,68 @@ function TopBar({
             <SelectItem key="All Lists" value="All Lists">
               All Lists
             </SelectItem>
-            {renderLists()}
+            {listNames.map((name) => (
+              <SelectItem key={name} value={name}>
+                {name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
+
+        {/* create list */}
+        <Dialog open={openCreateList} onOpenChange={setOpenCreateList}>
+          <DialogTrigger>
+            <Plus
+              className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
+              strokeWidth={1.5}
+            />
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create a New List:</DialogTitle>
+            </DialogHeader>
+
+            <form
+              className="flex flex-col gap-4 w-full"
+              onSubmit={(e) => {
+                e.stopPropagation();
+                handleSubmit(createList)(e);
+              }}
+              noValidate
+            >
+              <Controller
+                name="newlist"
+                control={control}
+                rules={{ required: "List name is required" }}
+                render={({ field }) => (
+                  <Input
+                    className="w-full"
+                    type="text"
+                    placeholder="List name"
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+              {errors.newlist && (
+                <p className="text-red-500">{errors.newlist.message}</p>
+              )}
+
+              <DialogFooter>
+                <div className="p-0 flex flex-row justify-between w-full">
+                  <DialogClose asChild>
+                    <Button variant="secondary">Cancel</Button>
+                  </DialogClose>
+                  <Button type="submit">Create</Button>
+                </div>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* delete */}
         <Dialog>
-          {currentList === "All Lists" ? null : (
+          {currentList !== "All Lists" && (
             <DialogTrigger>
               <Trash
                 className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
@@ -108,24 +179,17 @@ function TopBar({
             <DialogHeader>
               <DialogTitle>Are you absolutely sure?</DialogTitle>
               <DialogDescription>
-                This action cannot be undone. This will permanently delete the
-                list and all of its tasks.
+                This will permanently delete the list and all of its tasks.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <div className="p-0 mt-2 flex flex-row justify-between w-full">
                 <DialogClose asChild>
-                  <Button
-                    variant="secondary"
-                    className="hover:background-black cursor-pointer transition-colors duration-200"
-                  >
-                    Cancel
-                  </Button>
+                  <Button variant="secondary">Cancel</Button>
                 </DialogClose>
                 <DialogClose asChild>
                   <Button
                     variant="destructive"
-                    className="cursor-pointer"
                     onClick={() => removeList(currentList)}
                   >
                     Delete
@@ -135,15 +199,17 @@ function TopBar({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* renaming */}
         <Dialog>
-          <DialogTrigger>
-            {currentList === "All Lists" ? null : (
+          {currentList !== "All Lists" && (
+            <DialogTrigger>
               <PencilLine
                 className="text-gray-400 hover:text-black cursor-pointer transition-colors duration-200"
                 strokeWidth={1.5}
               />
-            )}
-          </DialogTrigger>
+            </DialogTrigger>
+          )}
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Rename This List:</DialogTitle>
@@ -160,17 +226,10 @@ function TopBar({
             <DialogFooter>
               <div className="p-0 flex flex-row justify-between w-full">
                 <DialogClose asChild>
-                  <Button
-                    variant="secondary"
-                    className="hover:background-black cursor-pointer transition-colors duration-200"
-                  >
-                    Cancel
-                  </Button>
+                  <Button variant="secondary">Cancel</Button>
                 </DialogClose>
                 <DialogClose asChild>
-                  <Button className="cursor-pointer" onClick={renameList}>
-                    Update
-                  </Button>
+                  <Button onClick={renameList}>Update</Button>
                 </DialogClose>
               </div>
             </DialogFooter>
@@ -178,6 +237,7 @@ function TopBar({
         </Dialog>
       </div>
 
+      {/* search */}
       <div className="relative">
         <Search
           size="20"
@@ -188,20 +248,11 @@ function TopBar({
           autoComplete="off"
           placeholder="Search..."
           className="pl-10 w-48"
-          onChange={(val) => {
-            setSearch(val.target.value);
-            console.log("Current Search:", val);
-          }}
+          onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
-      <Select
-        value={currentSort}
-        onValueChange={(val) => {
-          setCurrentSort(val);
-          console.log("Current Sort:", val);
-        }}
-      >
+      <Select value={currentSort} onValueChange={(val) => setCurrentSort(val)}>
         <SelectTrigger className="w-relative hover:border-black cursor-pointer">
           <SelectValue placeholder="Sort by" />
         </SelectTrigger>
