@@ -238,19 +238,21 @@ function TopBar({
       </div>
 
       {/* search */}
-      <div className="relative">
-        <Search
-          size="20"
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-        />
-        <Input
-          type="text"
-          autoComplete="off"
-          placeholder="Search..."
-          className="pl-10 w-48"
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+<div className="absolute left-1/2 -translate-x-1/2">
+    <div className="relative">
+      <Search
+        size="20"
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+      />
+      <Input
+        type="text"
+        autoComplete="off"
+        placeholder="Search..."
+        className="pl-10 w-48"
+        onChange={(e) => setSearch(e.target.value)}
+      />
+    </div>
+  </div>
 
       <Select value={currentSort} onValueChange={(val) => setCurrentSort(val)}>
         <SelectTrigger className="w-relative hover:border-black cursor-pointer">

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -28,19 +28,32 @@ function PomodoroComponent() {
     setShortBreakTime,
   } = useTimer();
 
-  const switchStatus = () => {
-    const reordered = [status[1], status[0]];
-    setStatus(reordered);
-    setTicking(false);
+const updateTimer = (status) => {
+  if (status === "Pomodoro") {
+    setMinutes(pomodoroTime);
+  } else {
+    setMinutes(shortBreakTime);
+  }
+  setSeconds(0);
+};
 
-    if (reordered[0] === "Pomodoro") {
-      setMinutes(pomodoroTime);
-      setSeconds(0);
-    } else {
-      setMinutes(shortBreakTime);
-      setSeconds(0);
-    }
-  };
+const switchStatus = () => {
+  const reordered = [status[1], status[0]];
+  setStatus(reordered);
+  updateTimer(reordered[0]);
+  setTicking(false);
+  requestAnimationFrame(() => setTicking(true));
+};
+
+
+
+
+
+useEffect(() => {
+  updateTimer(status[0]);
+}, [status]);
+
+  
 
   return (
     <div className="flex flex-col gap-8 items-center p-4 min-h-screen w-full overflow-y-hidden bg-white">

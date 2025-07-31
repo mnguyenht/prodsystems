@@ -1,5 +1,25 @@
-Lesson 4 - Pomodoro Timer
+# ✅ A minimalist productivity tools collection ✅
 
-## Project Description
+->A clean, lightweight collection of productivity tools designed to help you **focus, organize, and get things done** — without the clutter.  
 
-Learnings: React router, useEffect, setInterval, Clock logics, localStorage, and more.
+---
+
+## 🛠️ Created With 🛠️
+- React
+- Tailwind
+- Shadcn
+- dnd-kit
+- React Hook Form
+
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+
+
+[thats all](https://prodsystems.vercel.app/)

@@ -105,7 +105,6 @@ const App = () => {
 
   useEffect(() => {
     if (!ticking) return;
-
     const interval = setInterval(() => {
       // Tick down seconds
       setSeconds((prevSeconds) => {
@@ -125,10 +124,11 @@ const App = () => {
       setMinutes((prevMinutes) => {
         return seconds === 0 && minutes !== 0 ? prevMinutes - 1 : prevMinutes;
       });
-    }, 1000);
-
+          console.log(minutes, seconds)
+    }, 300);
     return () => clearInterval(interval);
-  }, [ticking, seconds]);
+
+  }, [ticking, seconds, minutes]);
 
   return (
     <TasksContext.Provider value={{ tasks, setTasks }}>
