@@ -125,7 +125,7 @@ const App = () => {
         return seconds === 0 && minutes !== 0 ? prevMinutes - 1 : prevMinutes;
       });
           console.log(minutes, seconds)
-    }, 300);
+    }, 1000);
     return () => clearInterval(interval);
 
   }, [ticking, seconds, minutes]);
