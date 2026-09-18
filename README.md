@@ -1,6 +1,6 @@
 # ✅ A minimalist productivity tools collection ✅
 
-->A clean, lightweight collection of productivity tools designed to help you **focus, organize, and get things done** — without the clutter.  
+->A clean, lightweight collection of productivity tools designed to help you **focus, organize, and get things done.**
 
 ---
 
